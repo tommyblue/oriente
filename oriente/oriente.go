@@ -1,21 +1,23 @@
 package oriente
 
 import (
+	"fmt"
 	"math/rand"
 )
 
-func NewGame(players int) *Game {
-	moneyDeck := []int{2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4}
-	i := rand.Intn(len(moneyDeck))
-	p1 := Player{Name: "p1", Money: moneyDeck[i]}
-	removeIndex(moneyDeck, i)
-	i = rand.Intn(len(moneyDeck))
-	p2 := Player{Name: "p2", Money: moneyDeck[i]}
+var RunningGames map[string]*Game
+
+func Initialize() {
+	RunningGames = make(map[string]*Game)
+}
+
+func NewGame(nPlayers int) *Game {
+	players := generatePlayers(nPlayers)
 
 	g := &Game{
-		Players: []Player{p1, p2},
+		Players: players,
 		Deck:    newDeck(),
-		Token:   &p1,
+		Token:   &players[0],
 	}
 
 	g.addPrize()
@@ -23,8 +25,19 @@ func NewGame(players int) *Game {
 	return g
 }
 
-func removeIndex(s []int, index int) []int {
-	return append(s[:index], s[index+1:]...)
+func generatePlayers(nPlayers int) []Player {
+	// This is the deck of cards with money
+	coinsDeck := []int{2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4}
+	var players []Player
+
+	for i := 0; i < nPlayers; i++ {
+		mIdx := rand.Intn(len(coinsDeck))
+		coin := coinsDeck[mIdx]
+		players = append(players, Player{Name: fmt.Sprintf("pl%d", i), Money: coin})
+		coinsDeck = append(coinsDeck[:mIdx], coinsDeck[mIdx+1:]...)
+	}
+
+	return players
 }
 
 func newDeck() []Card {
