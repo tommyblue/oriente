@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tommyblue/oriente/oriente"
+	"github.com/tommyblue/oriente/utils"
 )
 
 func Run() {
@@ -23,7 +24,7 @@ func Run() {
 
 	spa := spaHandler{staticPath: "web/build", indexPath: "index.html"}
 	r.PathPrefix("/").Handler(spa)
-
+	r.Use(mux.CORSMethodMiddleware(r))
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         ":8000",
@@ -36,6 +37,10 @@ func Run() {
 
 // Return status of the game
 func gameHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == http.MethodOptions {
+		return
+	}
 	vars := mux.Vars(r)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"games": vars["id"]})
@@ -43,15 +48,35 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 
 // Add a new player to the game
 func newPlayerHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == http.MethodOptions {
+		return
+	}
 	vars := mux.Vars(r)
+	g, ok := oriente.RunningGames[vars["id"]]
+
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	playerID, ok := g.GetFreePlayer()
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"game": vars["id"]})
+	json.NewEncoder(w).Encode(map[string]string{"game": vars["id"], "player": playerID})
 }
 
 // Create new game
 func newGameHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == http.MethodOptions {
+		return
+	}
 	vars := mux.Vars(r)
-	token := tokenGenerator()
+	token := utils.TokenGenerator()
 	p, err := strconv.Atoi(vars["players"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -59,5 +84,10 @@ func newGameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	g := oriente.NewGame(p)
 	oriente.RunningGames[token] = g
-	json.NewEncoder(w).Encode(map[string]string{"game": token})
+	playerID, ok := g.GetFreePlayer()
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]string{"game": token, "player": playerID})
 }

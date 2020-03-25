@@ -5,14 +5,16 @@ type Player struct {
 	CurrentCard *Card
 	Action      bool
 	Money       int
+	ID          string
+	Managed     bool // true if this player has been assigned to a client
 }
 
 type Game struct {
-	Players  []Player
+	Players  []*Player
 	Laborers int
 	Deck     []Card
-	Token    *Player
-	Prize    []Card // The cards that will be won by the first playing player
+	Token    *Player // The first player playing the turn
+	Prize    []Card  // The cards that will be won by the first playing player
 }
 
 type Card struct {
