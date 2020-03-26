@@ -1,20 +1,24 @@
 package oriente
 
 type Player struct {
-	Name        string
-	CurrentCard *Card
-	Action      bool
-	Money       int
-	ID          string
-	Managed     bool // true if this player has been assigned to a client
+	ID           string // Identifier of the player
+	Name         string
+	CurrentCard  *Card  // Card in the hand of the player
+	VisibleCard  bool   // true if the card is visible to other players
+	DidAction    bool   // true if the player played its action in this era
+	CalledAction string // the action the player wants to perform ("attack" or "use_ability")
+	Money        int    // Amount of money obtained
+	Managed      bool   // true if this player has been assigned to a client
 }
 
 type Game struct {
-	Players  []*Player
-	Laborers int
-	Deck     []Card
-	Token    *Player // The first player playing the turn
-	Prize    []Card  // The cards that will be won by the first playing player
+	ID         string // ID of the game
+	Players    []*Player
+	Laborers   int
+	Deck       []*Card
+	Token      *Player // The first player playing the turn
+	NextPlayer *Player // The next player to play the turn
+	Prize      []*Card // The cards that will be won by the first playing player
 }
 
 type Card struct {

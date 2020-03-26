@@ -12,6 +12,12 @@ function App() {
             <br />
             <NewGame setGame={setGame} setPlayer={setPlayer} />
             <JoinGame setGame={setGame} setPlayer={setPlayer} />
+            <a
+                href={`http://localhost:8000/game/${game}/${player}`}
+                target="_blank"
+            >
+                Debug
+            </a>
         </div>
     );
 }

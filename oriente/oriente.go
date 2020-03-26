@@ -9,8 +9,8 @@ func Initialize() {
 func NewGame(nPlayers int) *Game {
 	g := &Game{}
 	g.generateDeck()
-	g.generatePlayers(nPlayers)
 	g.addPrize()
+	g.generatePlayers(nPlayers)
 
 	return g
 }

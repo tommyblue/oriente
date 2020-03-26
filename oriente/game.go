@@ -7,6 +7,61 @@ import (
 	"github.com/tommyblue/oriente/utils"
 )
 
+func (g *Game) MakeAction(p *Player, action string) {
+	p.DidAction = true
+	p.VisibleCard = true
+	p.CalledAction = action
+	g.nextPlayerTurn()
+}
+
+func (g *Game) nextPlayerTurn() {
+	found := false
+	for _, p := range g.Players {
+		if found {
+			g.NextPlayer = p
+			return
+		}
+
+		if p.ID == g.NextPlayer.ID {
+			found = true
+		}
+	}
+
+	g.NextPlayer = g.Players[0]
+}
+
+// ActivePlayers return the number of currently active players (ready to play)
+func (g *Game) ActivePlayers() int {
+	var players int
+	for _, p := range g.Players {
+		if p.Managed {
+			players++
+		}
+	}
+	return players
+}
+
+// Player return the player
+func (g *Game) Player(playerID string) (*Player, bool) {
+	for _, p := range g.Players {
+		if p.ID == playerID {
+			return p, true
+		}
+	}
+	return nil, false
+}
+
+// ValidatePlayer return true if the player exists in the game
+func (g *Game) ValidatePlayer(playerID string) bool {
+	for _, p := range g.Players {
+		if p.ID == playerID {
+			return true
+		}
+	}
+	return false
+}
+
+// GetFreePlayer return the ID of the first available spot in the game
 func (g *Game) GetFreePlayer() (string, bool) {
 	for _, p := range g.Players {
 		if !p.Managed {
@@ -21,7 +76,7 @@ func (g *Game) addPrize() {
 	g.Prize = append(g.Prize, g.pickCard())
 }
 
-func (g *Game) pickCard() Card {
+func (g *Game) pickCard() *Card {
 	c := g.Deck[len(g.Deck)-1]
 	g.Deck = g.Deck[:len(g.Deck)-1]
 	return c
@@ -34,17 +89,23 @@ func (g *Game) generatePlayers(nPlayers int) {
 	for i := 0; i < nPlayers; i++ {
 		mIdx := rand.Intn(len(coinsDeck))
 		coin := coinsDeck[mIdx]
-		p := &Player{Name: fmt.Sprintf("pl%d", i), Money: coin, ID: utils.TokenGenerator()}
+		p := &Player{
+			ID:          utils.TokenGenerator(),
+			Name:        fmt.Sprintf("player_%d", i),
+			Money:       coin,
+			CurrentCard: g.pickCard(),
+		}
 		g.Players = append(g.Players, p)
 		coinsDeck = append(coinsDeck[:mIdx], coinsDeck[mIdx+1:]...)
 	}
 
 	g.Token = g.Players[0]
+	g.NextPlayer = g.Players[0]
 }
 
 func (g *Game) generateDeck() {
 
-	tmpDeck := []Card{}
+	tmpDeck := []*Card{}
 	// Add 12 Nofu
 	tmpDeck = append(tmpDeck, generateCard(Nofu, 12)...)
 	// Add 7 Akindo
@@ -62,12 +123,12 @@ func (g *Game) generateDeck() {
 	rand.Shuffle(len(tmpDeck), func(i, j int) { tmpDeck[i], tmpDeck[j] = tmpDeck[j], tmpDeck[i] })
 
 	// Get 4 cards fot the base
-	base := make([]Card, 4)
+	base := make([]*Card, 4)
 	copy(base, tmpDeck[0:4])
 	tmpDeck = append(tmpDeck[:0], tmpDeck[4:]...)
 
 	// Get 4 cards and insert Geisha, shuffle
-	wGeisha := make([]Card, 4)
+	wGeisha := make([]*Card, 4)
 	copy(wGeisha, tmpDeck[0:4])
 	tmpDeck = append(tmpDeck[:0], tmpDeck[4:]...)
 	wGeisha = append(wGeisha, generateCard(Geisha, 1)...)
@@ -84,10 +145,10 @@ func (g *Game) generateDeck() {
 	g.Deck = append(g.Deck, tmpDeck...)
 }
 
-func generateCard(c Character, n int) []Card {
-	v := []Card{}
+func generateCard(c Character, n int) []*Card {
+	v := []*Card{}
 	for i := 0; i < n; i++ {
-		v = append(v, Card{
+		v = append(v, &Card{
 			Name:  c.String(),
 			Value: c,
 		})
