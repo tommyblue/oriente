@@ -15,6 +15,7 @@ function App() {
             <a
                 href={`http://localhost:8000/game/${game}/${player}`}
                 target="_blank"
+                rel="noopener noreferrer"
             >
                 Debug
             </a>
@@ -27,11 +28,17 @@ function JoinGame({ setGame, setPlayer }) {
     const [gameID, setGameID] = useState(null);
     const joinGame = () => {
         fetch(`http://localhost:8000/game/${gameID}`)
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw res.statusText; // TODO: manage the error
+                }
+                return res.json();
+            })
             .then(res => {
                 setGame(res.game);
                 setPlayer(res.player);
-            });
+            })
+            .catch(err => console.error(err));
     };
     if (showForm) {
         return (

@@ -7,7 +7,7 @@ import (
 	"github.com/tommyblue/oriente/utils"
 )
 
-func (g *Game) MakeAction(p *Player, action string) {
+func (g *Game) MakeAction(p *Player, action *PlayerAction) {
 	p.DidAction = true
 	p.VisibleCard = true
 	p.CalledAction = action
@@ -28,6 +28,10 @@ func (g *Game) nextPlayerTurn() {
 	}
 
 	g.NextPlayer = g.Players[0]
+}
+
+func (g *Game) GameStarted() bool {
+	return len(g.Players) == g.ActivePlayers()
 }
 
 // ActivePlayers return the number of currently active players (ready to play)
