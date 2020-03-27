@@ -10,6 +10,15 @@ import (
 	"github.com/tommyblue/oriente/utils"
 )
 
+/* A player can call the action if:
+- it's its turn
+- has the token
+When it calls:
+- the card is uncovered
+- get the token
+- tell the action ("pass", "attack" or "use_ability")
+- turn is to the next player
+*/
 func actionHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
@@ -42,7 +51,7 @@ func actionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var a oriente.PlayerAction
+	var a oriente.Action
 	err := json.NewDecoder(r.Body).Decode(&a)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -56,7 +65,13 @@ func actionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	g.MakeAction(p, &a)
+	if ok := g.MakeAction(p, &a); !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Cannot perform the action",
+		})
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(gameStatusResponse(g, vars))

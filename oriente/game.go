@@ -7,11 +7,46 @@ import (
 	"github.com/tommyblue/oriente/utils"
 )
 
-func (g *Game) MakeAction(p *Player, action *PlayerAction) {
-	p.DidAction = true
-	p.VisibleCard = true
-	p.CalledAction = action
+func (g *Game) MakeAction(p *Player, action *Action) bool {
+	if action.Action != "pass" {
+		if !g.canPerformAction(p) {
+			return false
+		}
+		p.DidAction = true
+		p.VisibleCard = true
+		g.CalledAction = action
+		g.Token = p
+	}
 	g.nextPlayerTurn()
+	return true
+}
+
+func (g *Game) canPerformAction(p *Player) bool {
+	// First action
+	if g.CalledAction == nil {
+		return true
+	}
+	// A player can't perform an action if already done during this era
+	if p.DidAction {
+		fmt.Println("Already did action")
+		return false
+	}
+	// The player target of the called action can't play
+	if g.CalledAction.TargetPlayerID == p.ID {
+		fmt.Println("called player")
+		return false
+	}
+	// Player with less power can't stop the action
+	if p.CurrentCard.Value < g.Token.CurrentCard.Value {
+		fmt.Println("less power")
+		return false
+	}
+	// If the power of the players is the same, the player must be poorer to stop the action
+	if p.CurrentCard.Value == g.Token.CurrentCard.Value && p.totalPoints() >= g.Token.totalPoints() {
+		fmt.Println("too rich")
+		return false
+	}
+	return true
 }
 
 func (g *Game) nextPlayerTurn() {
@@ -96,9 +131,9 @@ func (g *Game) generatePlayers(nPlayers int) {
 		p := &Player{
 			ID:          utils.TokenGenerator(),
 			Name:        fmt.Sprintf("player_%d", i),
-			Money:       coin,
 			CurrentCard: g.pickCard(),
 		}
+		p.Points = append(p.Points, coin)
 		g.Players = append(g.Players, p)
 		coinsDeck = append(coinsDeck[:mIdx], coinsDeck[mIdx+1:]...)
 	}

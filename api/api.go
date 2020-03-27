@@ -32,15 +32,7 @@ func gameRoutes(r *mux.Router) {
 	g := r.PathPrefix("/game").Subrouter()
 	// Generate a new match
 	g.HandleFunc("/new/{players:[0-9]+}", newGameHandler) //.Methods("POST")
-	/* A player can call the action if:
-	- it's its turn
-	- has the token
-	When it calls:
-	- the card is uncovered
-	- get the token
-	- tell the action ("attack" or "use_ability")
-	- turn is to the next player
-	*/
+	// Call the action
 	g.HandleFunc("/{id}/{player}/call_action/", actionHandler).Methods("POST").HeadersRegexp("Content-Type", "application/json")
 	// Game status for the player
 	g.HandleFunc("/{id}/{player}", gameStatusHandler)
