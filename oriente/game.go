@@ -44,7 +44,7 @@ func (g *Game) canPerformAction(p *Player) bool {
 		return false
 	}
 	// If the power of the players is the same, the player must be poorer to stop the action
-	if p.CurrentCard.Value == g.Token.CurrentCard.Value && p.totalPoints() >= g.Token.totalPoints() {
+	if p.CurrentCard.Value == g.Token.CurrentCard.Value && len(p.Points) >= len(g.Token.Points) {
 		log.Debug("too rich")
 		return false
 	}
