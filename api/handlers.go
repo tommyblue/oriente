@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/gorilla/mux"
 	"github.com/tommyblue/oriente/oriente"
 	"github.com/tommyblue/oriente/utils"
@@ -28,8 +30,10 @@ func actionHandler(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
+		msg := "the game doesn't exist"
+		log.Info(msg)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": "the game doesn't exist",
+			"error": msg,
 		})
 		return
 	}
@@ -37,16 +41,20 @@ func actionHandler(w http.ResponseWriter, r *http.Request) {
 	p, ok := g.Player(vars["player"])
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
+		msg := "the player doesn't exist in this game"
+		log.Info(msg)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": "the player doesn't exist in this game",
+			"error": msg,
 		})
 		return
 	}
 
 	if p.DidAction {
 		w.WriteHeader(http.StatusBadRequest)
+		msg := "the player already played during this era"
+		log.Info(msg)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": "the player already played during this era",
+			"error": msg,
 		})
 		return
 	}
@@ -59,22 +67,26 @@ func actionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if ok := validateAction(a.Action); !ok {
 		w.WriteHeader(http.StatusBadRequest)
+		msg := "invalid action. Possible actions: 'attack', 'use_ability', 'pass'"
+		log.Info(msg)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": "invalid action. Possible actions: 'attack', 'use_ability'",
+			"error": msg,
 		})
 		return
 	}
 
 	if ok := g.MakeAction(p, &a); !ok {
 		w.WriteHeader(http.StatusBadRequest)
+		msg := "Cannot perform the action"
+		log.Error(msg)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": "Cannot perform the action",
+			"error": msg,
 		})
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(gameStatusResponse(g, vars))
+	json.NewEncoder(w).Encode(gameStatusResponse(g, p.ID))
 }
 
 // Return status of the game
@@ -89,13 +101,14 @@ func gameStatusHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if ok := g.ValidatePlayer(vars["player"]); !ok {
+	p, ok := g.Player(vars["player"])
+	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(gameStatusResponse(g, vars))
+	json.NewEncoder(w).Encode(gameStatusResponse(g, p.ID))
 }
 
 // Add a new player to the game
@@ -117,6 +130,7 @@ func newPlayerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+	log.Debugf("Adding player %s", playerID)
 	json.NewEncoder(w).Encode(map[string]string{"game": vars["id"], "player": playerID})
 }
 

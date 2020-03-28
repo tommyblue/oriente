@@ -31,16 +31,11 @@ func Run() {
 func gameRoutes(r *mux.Router) {
 	g := r.PathPrefix("/game").Subrouter()
 	// Generate a new match
-	g.HandleFunc("/new/{players:[0-9]+}", newGameHandler) //.Methods("POST")
+	g.HandleFunc("/new/{players:[0-9]+}", newGameHandler)
 	// Call the action
 	g.HandleFunc("/{id}/{player}/call_action/", actionHandler).Methods("POST").HeadersRegexp("Content-Type", "application/json")
 	// Game status for the player
 	g.HandleFunc("/{id}/{player}", gameStatusHandler)
 	// Add a new player to a game
 	g.HandleFunc("/{id}", newPlayerHandler)
-}
-
-func enableCors(w http.ResponseWriter, r *http.Request) bool {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	return r.Method == http.MethodOptions
 }

@@ -1,12 +1,17 @@
 package api
 
-import "github.com/tommyblue/oriente/oriente"
+import (
+	"net/http"
+
+	"github.com/tommyblue/oriente/oriente"
+)
 
 func validateAction(action string) bool {
-	return action == "attack" || action == "use_ability"
+	return action == "attack" || action == "use_ability" || action == "pass"
 }
 
-func gameStatusResponse(g *oriente.Game, vars map[string]string) map[string]interface{} {
+// Build the JSON response for the game status
+func gameStatusResponse(g *oriente.Game, playerID string) map[string]interface{} {
 	var players []map[string]interface{}
 	for _, p := range g.Players {
 		player := map[string]interface{}{
@@ -41,7 +46,12 @@ func gameStatusResponse(g *oriente.Game, vars map[string]string) map[string]inte
 		"game_started":   g.GameStarted(),
 		"token":          token,
 		"next_player":    g.NextPlayer.ID,
-		"your_turn":      g.NextPlayer.ID == vars["player"],
+		"your_turn":      g.NextPlayer.ID == playerID,
 		"called_action":  action,
 	}
+}
+
+func enableCors(w http.ResponseWriter, r *http.Request) bool {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	return r.Method == http.MethodOptions
 }

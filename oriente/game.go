@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/tommyblue/oriente/utils"
 )
 
@@ -28,22 +30,22 @@ func (g *Game) canPerformAction(p *Player) bool {
 	}
 	// A player can't perform an action if already done during this era
 	if p.DidAction {
-		fmt.Println("Already did action")
+		log.Debug("Already did action")
 		return false
 	}
 	// The player target of the called action can't play
 	if g.CalledAction.TargetPlayerID == p.ID {
-		fmt.Println("called player")
+		log.Debug("called player")
 		return false
 	}
 	// Player with less power can't stop the action
 	if p.CurrentCard.Value < g.Token.CurrentCard.Value {
-		fmt.Println("less power")
+		log.Debug("less power")
 		return false
 	}
 	// If the power of the players is the same, the player must be poorer to stop the action
 	if p.CurrentCard.Value == g.Token.CurrentCard.Value && p.totalPoints() >= g.Token.totalPoints() {
-		fmt.Println("too rich")
+		log.Debug("too rich")
 		return false
 	}
 	return true
@@ -88,16 +90,6 @@ func (g *Game) Player(playerID string) (*Player, bool) {
 		}
 	}
 	return nil, false
-}
-
-// ValidatePlayer return true if the player exists in the game
-func (g *Game) ValidatePlayer(playerID string) bool {
-	for _, p := range g.Players {
-		if p.ID == playerID {
-			return true
-		}
-	}
-	return false
 }
 
 // GetFreePlayer return the ID of the first available spot in the game
