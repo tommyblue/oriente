@@ -25,11 +25,31 @@ func (g *Game) MakeAction(p *Player, action *Action) bool {
 			p.DidAction = false
 		}
 		g.CalledAction = action
+		// The player gets the token
 		g.TokenOwner = p
 	}
 	g.nextPlayerTurn()
 	g.Round++
+	// The loop has ended, the destiny can be fulfilled
+	if g.NextPlayer == p { // TODO: is this check correct?
+		g.fulfillDestiny()
+	}
+	// g.endEra() // TODO
 	return true
+}
+
+/* When the player fulfill his destiny, these things happen:
+1 - if there's a prize, move the prize in the turn's temporary prize and empty the era prize
+2 - at the end, add the temporary prize to the players points
+3 - The next turn will be of the player that owns the token
+*/
+func (g *Game) fulfillDestiny() {
+	// 1
+	g.TempPrize = g.Prize
+	g.Prize = nil
+	// 2
+	g.NextPlayer.Points = append(g.NextPlayer.Points, g.TempPrize...)
+	g.TempPrize = nil
 }
 
 func (g *Game) canPerformAction(p *Player) bool {
@@ -73,6 +93,7 @@ func (g *Game) nextPlayerTurn() {
 		}
 	}
 
+	// TODO: is this always true?
 	g.NextPlayer = g.Players[0]
 }
 
@@ -124,7 +145,20 @@ func (g *Game) pickCard() *Card {
 
 func (g *Game) generatePlayers(nPlayers int) {
 	// This is the deck of cards with money
-	coinsDeck := []int{2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4}
+	coinsDeck := []*Card{
+		&Card{Name: "2 Coins", Value: 2},
+		&Card{Name: "2 Coins", Value: 2},
+		&Card{Name: "2 Coins", Value: 2},
+		&Card{Name: "2 Coins", Value: 2},
+		&Card{Name: "3 Coins", Value: 3},
+		&Card{Name: "3 Coins", Value: 3},
+		&Card{Name: "3 Coins", Value: 3},
+		&Card{Name: "3 Coins", Value: 3},
+		&Card{Name: "4 Coins", Value: 4},
+		&Card{Name: "4 Coins", Value: 4},
+		&Card{Name: "4 Coins", Value: 4},
+		&Card{Name: "4 Coins", Value: 4},
+	}
 
 	for i := 0; i < nPlayers; i++ {
 		mIdx := rand.Intn(len(coinsDeck))

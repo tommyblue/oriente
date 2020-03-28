@@ -14,10 +14,15 @@ func validateAction(action string) bool {
 func gameStatusResponse(g *oriente.Game, playerID string) map[string]interface{} {
 	var players []map[string]interface{}
 	for _, p := range g.Players {
+		var points []map[string]interface{}
+		for _, point := range p.Points {
+			points = append(points, map[string]interface{}{"name": point.Name, "value": point.Value})
+		}
 		player := map[string]interface{}{
 			"id":        p.ID,
 			"name":      p.Name,
 			"has_token": !p.DidAction,
+			"points":    points,
 		}
 		if p.VisibleCard {
 			player["card"] = p.CurrentCard.Name
@@ -49,6 +54,7 @@ func gameStatusResponse(g *oriente.Game, playerID string) map[string]interface{}
 		"next_player":    g.NextPlayer.ID,
 		"your_turn":      g.NextPlayer.ID == playerID,
 		"called_action":  action,
+		"prize_cards":    len(g.Prize), // Number of cards that the player playing first in the era will win
 	}
 }
 
