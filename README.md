@@ -4,8 +4,9 @@ This is the "famous" Oriente card game.
 
 ## Assets
 
-Assets (i.e. cards images) aren't included in this repository.
-Owners of the game must scan their images and put them in `web/srs/assets/`.
+Card images and fonts aren't included in this repository.
+
+Owners of the game must scan their cards and put them in `web/src/assets/`.
 The names and sizes of the images are listed below:
 
 | Card        | Filename    | Size in pxl (WxH) |
@@ -26,3 +27,5 @@ The names and sizes of the images are listed below:
 | Money 4     | m4.jpg      | 640x1000          |
 | Summary     | summary.jpg | 640x1000          |
 | Square      | square.jpg  | 640x1000          |
+
+You can choose whatever TTF font you like the most. Put the TTF file in `web/src/fonts/font.ttf`
