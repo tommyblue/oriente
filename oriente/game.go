@@ -16,10 +16,19 @@ func (g *Game) MakeAction(p *Player, action *Action) bool {
 		}
 		p.DidAction = true
 		p.VisibleCard = true
+		// If the player is "stealing" the action to another player, that player Action must be reset
+		if g.CalledAction != nil {
+			p, ok := g.GetPlayer(g.CalledAction.SourcePlayerID)
+			if !ok {
+				log.Panicf("Unknown player ID %s that already did called the action", g.CalledAction.SourcePlayerID)
+			}
+			p.DidAction = false
+		}
 		g.CalledAction = action
-		g.Token = p
+		g.TokenOwner = p
 	}
 	g.nextPlayerTurn()
+	g.Round++
 	return true
 }
 
@@ -39,12 +48,12 @@ func (g *Game) canPerformAction(p *Player) bool {
 		return false
 	}
 	// Player with less power can't stop the action
-	if p.CurrentCard.Value < g.Token.CurrentCard.Value {
+	if p.CurrentCard.Value < g.TokenOwner.CurrentCard.Value {
 		log.Debug("less power")
 		return false
 	}
 	// If the power of the players is the same, the player must be poorer to stop the action
-	if p.CurrentCard.Value == g.Token.CurrentCard.Value && len(p.Points) >= len(g.Token.Points) {
+	if p.CurrentCard.Value == g.TokenOwner.CurrentCard.Value && len(p.Points) >= len(g.TokenOwner.Points) {
 		log.Debug("too rich")
 		return false
 	}
@@ -83,7 +92,7 @@ func (g *Game) ActivePlayers() int {
 }
 
 // Player return the player
-func (g *Game) Player(playerID string) (*Player, bool) {
+func (g *Game) GetPlayer(playerID string) (*Player, bool) {
 	for _, p := range g.Players {
 		if p.ID == playerID {
 			return p, true
@@ -121,7 +130,7 @@ func (g *Game) generatePlayers(nPlayers int) {
 		mIdx := rand.Intn(len(coinsDeck))
 		coin := coinsDeck[mIdx]
 		p := &Player{
-			ID:          utils.TokenGenerator(),
+			ID:          utils.IDGenerator(),
 			Name:        fmt.Sprintf("player_%d", i),
 			CurrentCard: g.pickCard(),
 		}
@@ -130,7 +139,7 @@ func (g *Game) generatePlayers(nPlayers int) {
 		coinsDeck = append(coinsDeck[:mIdx], coinsDeck[mIdx+1:]...)
 	}
 
-	g.Token = g.Players[0]
+	g.TokenOwner = g.Players[0]
 	g.NextPlayer = g.Players[0]
 }
 

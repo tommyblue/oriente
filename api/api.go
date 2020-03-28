@@ -33,9 +33,9 @@ func gameRoutes(r *mux.Router) {
 	// Generate a new match
 	g.HandleFunc("/new/{players:[0-9]+}", newGameHandler)
 	// Call the action
-	g.HandleFunc("/{id}/{player}/call_action/", actionHandler).Methods("POST").HeadersRegexp("Content-Type", "application/json")
+	g.HandleFunc("/{game_id}/call_action/", actionHandler).Methods("POST").HeadersRegexp("Content-Type", "application/json")
 	// Game status for the player
-	g.HandleFunc("/{id}/{player}", gameStatusHandler)
+	g.HandleFunc("/{game_id}/{player}", gameStatusHandler)
 	// Add a new player to a game
-	g.HandleFunc("/{id}", newPlayerHandler)
+	g.HandleFunc("/{game_id}", newPlayerHandler)
 }

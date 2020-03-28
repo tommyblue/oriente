@@ -17,10 +17,11 @@ type Action struct {
 }
 type Game struct {
 	ID           string // ID of the game
+	Round        int    // Increase after any player action
 	Players      []*Player
 	Laborers     int
 	Deck         []*Card
-	Token        *Player // The first player playing the turn
+	TokenOwner   *Player // The first player playing the turn
 	NextPlayer   *Player // The next player to play the turn
 	Prize        []*Card // The cards that will be won by the first playing player
 	CalledAction *Action // the action the player wants to perform ("pass", "attack" or "use_ability")

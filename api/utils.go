@@ -28,9 +28,9 @@ func gameStatusResponse(g *oriente.Game, playerID string) map[string]interface{}
 		}
 		players = append(players, player)
 	}
-	var token string
-	if g.Token != nil {
-		token = g.Token.ID
+	var tokenOwner string
+	if g.TokenOwner != nil {
+		tokenOwner = g.TokenOwner.ID
 	}
 	action := map[string]interface{}{}
 	if g.CalledAction != nil {
@@ -41,10 +41,11 @@ func gameStatusResponse(g *oriente.Game, playerID string) map[string]interface{}
 		}
 	}
 	return map[string]interface{}{
+		"round":          g.Round,
 		"players":        players,
 		"active_players": g.ActivePlayers(),
 		"game_started":   g.GameStarted(),
-		"token":          token,
+		"token_owner":    tokenOwner,
 		"next_player":    g.NextPlayer.ID,
 		"your_turn":      g.NextPlayer.ID == playerID,
 		"called_action":  action,

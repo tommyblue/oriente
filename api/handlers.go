@@ -21,12 +21,13 @@ When it calls:
 - tell the action ("pass", "attack" or "use_ability")
 - turn is to the next player
 */
+// TODO: Move some game logic into oriente package
 func actionHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
 	vars := mux.Vars(r)
-	g, ok := oriente.RunningGames[vars["id"]]
+	g, ok := oriente.RunningGames[vars["game_id"]]
 
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
@@ -38,7 +39,13 @@ func actionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p, ok := g.Player(vars["player"])
+	var a oriente.Action
+	err := json.NewDecoder(r.Body).Decode(&a)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	p, ok := g.GetPlayer(a.SourcePlayerID)
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "the player doesn't exist in this game"
@@ -56,13 +63,6 @@ func actionHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{
 			"error": msg,
 		})
-		return
-	}
-
-	var a oriente.Action
-	err := json.NewDecoder(r.Body).Decode(&a)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if ok := validateAction(a.Action); !ok {
@@ -95,13 +95,13 @@ func gameStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	vars := mux.Vars(r)
-	g, ok := oriente.RunningGames[vars["id"]]
+	g, ok := oriente.RunningGames[vars["game_id"]]
 
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	p, ok := g.Player(vars["player"])
+	p, ok := g.GetPlayer(vars["player"])
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -117,7 +117,7 @@ func newPlayerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	vars := mux.Vars(r)
-	g, ok := oriente.RunningGames[vars["id"]]
+	g, ok := oriente.RunningGames[vars["game_id"]]
 
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
@@ -131,7 +131,7 @@ func newPlayerHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	log.Debugf("Adding player %s", playerID)
-	json.NewEncoder(w).Encode(map[string]string{"game": vars["id"], "player": playerID})
+	json.NewEncoder(w).Encode(map[string]string{"game": vars["game_id"], "player": playerID})
 }
 
 // Create new game
@@ -140,7 +140,7 @@ func newGameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	vars := mux.Vars(r)
-	token := utils.TokenGenerator()
+	token := utils.IDGenerator()
 	p, err := strconv.Atoi(vars["players"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
