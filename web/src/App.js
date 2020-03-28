@@ -1,17 +1,28 @@
 import React, { useState } from "react";
 import "./App.css";
+import cover from "./assets/cover.jpg";
 
 function App() {
     const [game, setGame] = useState(null);
     const [player, setPlayer] = useState(null);
     return (
         <div className="App">
-            Current game: {game}
-            <br />
-            Current player: {player}
-            <br />
-            <NewGame setGame={setGame} setPlayer={setPlayer} />
-            <JoinGame setGame={setGame} setPlayer={setPlayer} />
+            <Debug game={game} player={player} />
+            <img src={cover} className="cover" />
+            <div className="buttons">
+                <NewGame setGame={setGame} setPlayer={setPlayer} />
+                <JoinGame setGame={setGame} setPlayer={setPlayer} />
+            </div>
+            <div></div>
+        </div>
+    );
+}
+
+function Debug({ game, player }) {
+    return (
+        <div className="debug">
+            <div>Current game: {game}</div>
+            <div>Current player: {player}</div>
             <a
                 href={`http://localhost:8000/game/${game}/${player}`}
                 target="_blank"
@@ -55,9 +66,9 @@ function JoinGame({ setGame, setPlayer }) {
         );
     }
     return (
-        <div>
-            <button onClick={() => setShowForm(true)}>Join game</button>
-        </div>
+        <button className="button" onClick={() => setShowForm(true)}>
+            Join game
+        </button>
     );
 }
 
@@ -92,9 +103,9 @@ function NewGame({ setGame, setPlayer }) {
         );
     }
     return (
-        <div>
-            <button onClick={() => setShowForm(true)}>New game</button>
-        </div>
+        <button className="button" onClick={() => setShowForm(true)}>
+            New game
+        </button>
     );
 }
 

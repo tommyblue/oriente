@@ -1,0 +1,13 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+#root {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    /* background-color: black; */
+    background-image: url(./assets/bk.png);
+}
