@@ -3,27 +3,45 @@ import React, { useState } from "react";
 import cover from "./assets/cover.jpg";
 import "./intro.css";
 
-function Intro({ setGame, setPlayer }) {
+function Intro({
+    setGame,
+    setPlayer,
+    player,
+    game,
+    waitingPlayers,
+    gameState
+}) {
     const [showOption, setShowOption] = useState(null);
     return (
         <div>
             <img src={cover} alt="Oriente" className="cover" />
-            <div className="buttons">
-                <NewGame
-                    setGame={setGame}
-                    setPlayer={setPlayer}
-                    showOption={showOption}
-                    setShowOption={setShowOption}
-                />
-                <JoinGame
-                    setGame={setGame}
-                    setPlayer={setPlayer}
-                    showOption={showOption}
-                    setShowOption={setShowOption}
-                />
-            </div>
+            {player && game && waitingPlayers ? (
+                <Waiting gameState={gameState} />
+            ) : (
+                <div className="buttons">
+                    <NewGame
+                        setGame={setGame}
+                        setPlayer={setPlayer}
+                        showOption={showOption}
+                        setShowOption={setShowOption}
+                    />
+                    <JoinGame
+                        setGame={setGame}
+                        setPlayer={setPlayer}
+                        showOption={showOption}
+                        setShowOption={setShowOption}
+                    />
+                </div>
+            )}
         </div>
     );
+}
+
+function Waiting({ gameState }) {
+    const s = gameState.players
+        ? `(${gameState.active_players}/${gameState.players.length})`
+        : "";
+    return <div className="waiting">Waiting...{s}</div>;
 }
 
 function JoinGame({ setGame, setPlayer, showOption, setShowOption }) {

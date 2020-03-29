@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'Oriente';
-    src: local('Oriente'), url(./fonts/font.ttf) format('truetype');
+    src: local('Oriente'), url(./fonts/font.otf) format('truetype');
 }
 
 body {
