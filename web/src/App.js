@@ -3,9 +3,33 @@ import Intro from "./intro";
 import Game from "./game";
 import "./App.css";
 
+function useGameState() {
+    const gameInitialState = () => window.localStorage.getItem("game") || null;
+    const [game, setGame] = useState(gameInitialState);
+    useEffect(() => {
+        if (game === null) {
+            window.localStorage.removeItem("game");
+        } else {
+            window.localStorage.setItem("game", game);
+        }
+    }, [game]);
+
+    const playerInitialState = () =>
+        window.localStorage.getItem("player") || null;
+    const [player, setPlayer] = useState(playerInitialState);
+    useEffect(() => {
+        if (player === null) {
+            window.localStorage.removeItem("player");
+        } else {
+            window.localStorage.setItem("player", player);
+        }
+    }, [player]);
+
+    return [game, player, setGame, setPlayer];
+}
+
 function App() {
-    const [game, setGame] = useState(null);
-    const [player, setPlayer] = useState(null);
+    const [game, player, setGame, setPlayer] = useGameState();
     const [started, setStarted] = useState(false);
     const [timer, setTimer] = useState(null);
     const [gameState, setGameState] = useState({});
@@ -65,6 +89,13 @@ function App() {
 }
 
 function Debug({ game, player, started }) {
+    const clear = () => {
+        ["player", "game"].forEach(key => {
+            console.log(key);
+            window.localStorage.removeItem(key);
+            location.reload(); //eslint-disable-line
+        });
+    };
     return (
         <div className="debug">
             <div>Current game: {game}</div>
@@ -73,13 +104,17 @@ function Debug({ game, player, started }) {
             {game == null || player === null ? (
                 <span />
             ) : (
-                <a
-                    href={`http://localhost:8000/game/${game}/${player}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Debug
-                </a>
+                <div>
+                    <a
+                        href={`http://localhost:8000/game/${game}/${player}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Debug
+                    </a>
+                    <br />
+                    <button onClick={() => clear()}>Clear</button>
+                </div>
             )}
         </div>
     );
