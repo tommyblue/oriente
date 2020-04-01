@@ -15,3 +15,5 @@
 # vendor/
 /oriente-bin
 node_modules/
+
+/db.sql

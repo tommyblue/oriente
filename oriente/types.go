@@ -3,7 +3,7 @@ package oriente
 import "github.com/tommyblue/oriente/store"
 
 type Oriente struct {
-	runningGames map[string]*Game
+	RunningGames map[string]*Game
 	store        *store.Store
 }
 
@@ -23,7 +23,7 @@ type Action struct {
 	TargetPlayerID string `json:"target_player_id"` // The player target of the action
 }
 type Game struct {
-	ID           string // ID of the game
+	ID           string `json:"id"` // ID of the game
 	Round        int    // Increase after any player action
 	Players      []*Player
 	Laborers     int

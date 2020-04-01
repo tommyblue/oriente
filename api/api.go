@@ -1,9 +1,10 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 	"github.com/tommyblue/oriente/oriente"
@@ -24,6 +25,7 @@ func Run(game *oriente.Oriente) {
 }
 
 func (s *server) start() {
+	s.router.Use(loggingMiddleware)
 	s.setupGameRoutes()
 	s.setupSpaRoutes()
 	s.setupCors()
@@ -38,16 +40,23 @@ func (s *server) start() {
 	log.Fatal(s.srv.ListenAndServe())
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Info(r.RequestURI)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (s *server) setupGameRoutes() {
 	g := s.router.PathPrefix("/game").Subrouter()
 	// Generate a new match
-	g.HandleFunc("/new/{players:[0-9]+}", s.newGameHandler)
+	g.HandleFunc("/new/{players:[0-9]+}", s.handleAndSync(s.newGameHandler))
 	// Call the action
-	g.HandleFunc("/{game_id}/call_action/", s.actionHandler).Methods("POST").HeadersRegexp("Content-Type", "application/json")
+	g.HandleFunc("/{game_id}/call_action/", s.handleAndSync(s.actionHandler)).Methods("POST").HeadersRegexp("Content-Type", "application/json")
 	// Game status for the player
-	g.HandleFunc("/{game_id}/{player}", s.gameStatusHandler)
+	g.HandleFunc("/{game_id}/{player}", s.handleAndSync(s.gameStatusHandler))
 	// Add a new player to a game
-	g.HandleFunc("/{game_id}", s.newPlayerHandler)
+	g.HandleFunc("/{game_id}", s.handleAndSync(s.newPlayerHandler))
 }
 
 func (s *server) setupSpaRoutes() {

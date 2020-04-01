@@ -19,8 +19,7 @@ func init() {
 func main() {
 	rand.Seed(time.Now().Unix())
 	db := store.Init("./db.sql")
-	db.Connect()
 	defer db.Close()
-	game := oriente.Initialize(db)
-	api.Run(game)
+	o := oriente.Initialize(db)
+	api.Run(o)
 }
