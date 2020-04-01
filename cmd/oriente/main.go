@@ -8,6 +8,7 @@ import (
 
 	"github.com/tommyblue/oriente/api"
 	"github.com/tommyblue/oriente/oriente"
+	"github.com/tommyblue/oriente/store"
 )
 
 func init() {
@@ -17,6 +18,9 @@ func init() {
 
 func main() {
 	rand.Seed(time.Now().Unix())
-	oriente.Initialize()
-	api.Run()
+	db := store.Init("./db.sql")
+	db.Connect()
+	defer db.Close()
+	game := oriente.Initialize(db)
+	api.Run(game)
 }

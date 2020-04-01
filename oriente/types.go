@@ -1,5 +1,12 @@
 package oriente
 
+import "github.com/tommyblue/oriente/store"
+
+type Oriente struct {
+	runningGames map[string]*Game
+	store        *store.Store
+}
+
 type Player struct {
 	ID          string // Identifier of the player
 	Name        string

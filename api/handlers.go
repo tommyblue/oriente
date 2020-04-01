@@ -22,14 +22,14 @@ When it calls:
 - turn is to the next player
 */
 // TODO: Move some game logic into oriente package
-func actionHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) actionHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
 	vars := mux.Vars(r)
-	g, ok := oriente.RunningGames[vars["game_id"]]
+	g, err := s.game.GetGame(vars["game_id"])
 
-	if !ok {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "the game doesn't exist"
 		log.Info(msg)
@@ -40,7 +40,7 @@ func actionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var a oriente.Action
-	err := json.NewDecoder(r.Body).Decode(&a)
+	err = json.NewDecoder(r.Body).Decode(&a)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -90,14 +90,14 @@ func actionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Return status of the game
-func gameStatusHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) gameStatusHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
 	vars := mux.Vars(r)
-	g, ok := oriente.RunningGames[vars["game_id"]]
+	g, err := s.game.GetGame(vars["game_id"])
 
-	if !ok {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -112,14 +112,14 @@ func gameStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add a new player to the game
-func newPlayerHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) newPlayerHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
 	vars := mux.Vars(r)
-	g, ok := oriente.RunningGames[vars["game_id"]]
+	g, err := s.game.GetGame(vars["game_id"])
 
-	if !ok {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -135,20 +135,20 @@ func newPlayerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create new game
-func newGameHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) newGameHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
 	vars := mux.Vars(r)
-	token := utils.IDGenerator()
 	p, err := strconv.Atoi(vars["players"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	g := oriente.NewGame(p)
+	token := utils.IDGenerator()
 	g.ID = token
-	oriente.RunningGames[token] = g
+	s.game.AddGame(token, g)
 	playerID, ok := g.GetFreePlayer()
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
