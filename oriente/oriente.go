@@ -10,11 +10,14 @@ import (
 )
 
 func Initialize(s *store.Store) *Oriente {
-	return &Oriente{
+	o := &Oriente{
 		store:        s,
 		RunningGames: make(map[string]*Game),
 	}
-	// TODO: load games from db
+	if err := o.loadGames(); err != nil {
+		log.Fatal(err)
+	}
+	return o
 }
 
 func NewGame(nPlayers int) *Game {
@@ -28,7 +31,6 @@ func NewGame(nPlayers int) *Game {
 
 func (o *Oriente) AddGame(token string, g *Game) {
 	o.RunningGames[token] = g
-	// TODO: add game to db
 }
 
 func (o *Oriente) GetGame(token string) (*Game, error) {
@@ -49,6 +51,22 @@ func (o *Oriente) SyncStore() error {
 		if err := o.store.SyncGame(token, g); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (o *Oriente) loadGames() error {
+	games, err := o.store.LoadGames()
+	if err != nil {
+		return err
+	}
+	for token, g := range games {
+		var game Game
+		if err := json.Unmarshal(g, &game); err != nil {
+			return err
+		}
+		log.Infof("Found game %s", token)
+		o.RunningGames[token] = &game
 	}
 	return nil
 }

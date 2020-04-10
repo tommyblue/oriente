@@ -46,3 +46,28 @@ func (s *Store) SyncGame(token string, game []byte) error {
 	_, err := s.db.Exec(sqlStmt)
 	return err
 }
+
+func (s *Store) LoadGames() (map[string][]byte, error) {
+	games := make(map[string][]byte)
+	rows, err := s.db.Query("SELECT token, desc FROM games;")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var token string
+		var game []byte
+		err = rows.Scan(&token, &game)
+		if err != nil {
+			log.Error(err)
+			return nil, err
+		}
+		games[token] = game
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return games, nil
+}

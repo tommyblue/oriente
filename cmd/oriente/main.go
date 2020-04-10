@@ -21,5 +21,6 @@ func main() {
 	db := store.Init("./db.sql")
 	defer db.Close()
 	o := oriente.Initialize(db)
+	log.Info("Running server")
 	api.Run(o)
 }
