@@ -1,0 +1,21 @@
+.game-space {
+    display: block;
+}
+.prize-deck {
+    position: relative;
+    right: -70vh;
+    top: 13vh;
+}
+.prize-deck img {
+    position: absolute;
+}
+.cover.deck {
+    position: absolute;
+}
+.cover.prize {
+    transform: rotate(90deg);
+}
+
+.cover.prize.over {
+    filter: drop-shadow(-3px 3px 2px #666);
+}

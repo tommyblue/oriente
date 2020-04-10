@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import cover from "./assets/cover.jpg";
+import cover from "./assets/cover.png";
 import "./intro.css";
 
 function Intro({
@@ -9,7 +9,7 @@ function Intro({
     player,
     game,
     waitingPlayers,
-    gameState
+    gameState,
 }) {
     const [showOption, setShowOption] = useState(null);
     return (
@@ -48,17 +48,17 @@ function JoinGame({ setGame, setPlayer, showOption, setShowOption }) {
     const [gameID, setGameID] = useState(null);
     const joinGame = () => {
         fetch(`http://localhost:8000/game/${gameID}`)
-            .then(res => {
+            .then((res) => {
                 if (!res.ok) {
                     throw res.statusText; // TODO: manage the error
                 }
                 return res.json();
             })
-            .then(res => {
+            .then((res) => {
                 setGame(res.game);
                 setPlayer(res.player);
             })
-            .catch(err => console.error(err));
+            .catch((err) => console.error(err));
     };
     if (showOption !== null && showOption !== "join") {
         return <span />;
@@ -67,7 +67,7 @@ function JoinGame({ setGame, setPlayer, showOption, setShowOption }) {
         return (
             <div>
                 <form
-                    onSubmit={e => {
+                    onSubmit={(e) => {
                         e.preventDefault();
                         joinGame();
                     }}
@@ -78,7 +78,7 @@ function JoinGame({ setGame, setPlayer, showOption, setShowOption }) {
                     <section>
                         <input
                             type="text"
-                            onChange={e => setGameID(e.target.value)}
+                            onChange={(e) => setGameID(e.target.value)}
                         />
                     </section>
                     <section>
@@ -102,8 +102,8 @@ function NewGame({ setGame, setPlayer, showOption, setShowOption }) {
     const [nPlayers, setNPlayers] = useState(4);
     const setGameId = () => {
         fetch(`http://localhost:8000/game/new/${nPlayers}`)
-            .then(res => res.json())
-            .then(res => {
+            .then((res) => res.json())
+            .then((res) => {
                 setGame(res.game);
                 setPlayer(res.player);
             });
@@ -116,7 +116,7 @@ function NewGame({ setGame, setPlayer, showOption, setShowOption }) {
         return (
             <div>
                 <form
-                    onSubmit={e => {
+                    onSubmit={(e) => {
                         e.preventDefault();
                         setGameId();
                     }}
@@ -133,7 +133,7 @@ function NewGame({ setGame, setPlayer, showOption, setShowOption }) {
                             min="4"
                             max="12"
                             value={nPlayers}
-                            onChange={e => setNPlayers(e.target.value)}
+                            onChange={(e) => setNPlayers(e.target.value)}
                         />
                     </section>
                     <section>

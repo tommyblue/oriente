@@ -46,20 +46,20 @@ function App() {
                 return;
             }
             fetch(`http://localhost:8000/game/${game}/${player}`)
-                .then(res => {
+                .then((res) => {
                     if (!res.ok) {
                         throw res.statusText; // TODO: manage the error
                     }
                     return res.json();
                 })
-                .then(res => {
+                .then((res) => {
                     setGameState(res);
                     if (res.game_started === true) {
                         setStarted(true);
                         clearInterval(t);
                     }
                 })
-                .catch(err => console.error(err));
+                .catch((err) => console.error(err));
         }, 3000);
         setTimer(t);
         return () => {
@@ -71,9 +71,14 @@ function App() {
 
     return (
         <div className="App">
-            <Debug game={game} player={player} started={started} />
+            <Debug
+                game={game}
+                player={player}
+                started={started}
+                gameState={gameState}
+            />
             {game && player && started ? (
-                <Game />
+                <Game gameState={gameState} />
             ) : (
                 <Intro
                     setGame={setGame}
@@ -88,9 +93,9 @@ function App() {
     );
 }
 
-function Debug({ game, player, started }) {
+function Debug({ game, player, started, gameState }) {
     const clear = () => {
-        ["player", "game"].forEach(key => {
+        ["player", "game"].forEach((key) => {
             console.log(key);
             window.localStorage.removeItem(key);
             location.reload(); //eslint-disable-line
@@ -101,6 +106,7 @@ function Debug({ game, player, started }) {
             <div>Current game: {game}</div>
             <div>Current player: {player}</div>
             <div>Game started: {started ? "true" : "false"}</div>
+            <div>Prize cards: {gameState.prize_cards}</div>
             {game == null || player === null ? (
                 <span />
             ) : (
