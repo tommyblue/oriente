@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/tommyblue/oriente/oriente"
 )
 
@@ -66,6 +67,8 @@ func enableCors(w http.ResponseWriter, r *http.Request) bool {
 func (s *server) handleAndSync(f func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		f(w, r)
-		s.game.SyncStore()
+		if err := s.game.SyncStore(); err != nil {
+			log.Error(err)
+		}
 	}
 }

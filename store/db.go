@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -21,7 +22,7 @@ func Init(f string) *Store {
 	}
 
 	sqlStmt := `
-	CREATE TABLE IF NOT EXISTS games (token varchar not null primary key, desc text not null);
+	CREATE TABLE IF NOT EXISTS games (token varchar not null primary key, desc text not null, ts int not null);
 	`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
@@ -38,11 +39,12 @@ func (s *Store) Close() {
 }
 
 func (s *Store) SyncGame(token string, game []byte) error {
+	ts := time.Now().UTC().Unix()
 	sqlStmt := fmt.Sprintf(`
-	INSERT INTO games(token, desc) VALUES ('%s', '%s')
+	INSERT INTO games(token, desc, ts) VALUES ('%s', '%s', %d)
 	ON CONFLICT(token) DO
-	UPDATE SET desc='%s' WHERE token='%s';
-	`, token, game, game, token)
+	UPDATE SET desc='%s', ts=%d WHERE token='%s';
+	`, token, game, ts, game, ts, token)
 	_, err := s.db.Exec(sqlStmt)
 	return err
 }
