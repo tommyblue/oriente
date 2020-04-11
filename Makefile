@@ -11,3 +11,6 @@ build: ## Build binary in the local env
 
 govet: ## Run go vet on the project
 	go vet ./...
+
+test: ## Run go tests
+	go test -race -v ./...

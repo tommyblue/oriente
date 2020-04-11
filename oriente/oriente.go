@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/tommyblue/oriente/store"
+	"github.com/tommyblue/oriente/utils"
 )
 
 func Initialize(s *store.Store) *Oriente {
@@ -21,7 +22,7 @@ func Initialize(s *store.Store) *Oriente {
 }
 
 func NewGame(nPlayers int) *Game {
-	g := &Game{}
+	g := &Game{ID: utils.IDGenerator()}
 	g.generateDeck()
 	g.addPrize()
 	g.generatePlayers(nPlayers)
@@ -29,8 +30,8 @@ func NewGame(nPlayers int) *Game {
 	return g
 }
 
-func (o *Oriente) AddGame(token string, g *Game) {
-	o.RunningGames[token] = g
+func (o *Oriente) AddGame(g *Game) {
+	o.RunningGames[g.ID] = g
 }
 
 func (o *Oriente) GetGame(token string) (*Game, error) {

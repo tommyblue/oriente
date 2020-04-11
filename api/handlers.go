@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tommyblue/oriente/oriente"
-	"github.com/tommyblue/oriente/utils"
 )
 
 /* A player can call the action if:
@@ -139,20 +138,22 @@ func (s *server) newGameHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
+
 	vars := mux.Vars(r)
 	p, err := strconv.Atoi(vars["players"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	g := oriente.NewGame(p)
-	token := utils.IDGenerator()
-	g.ID = token
-	s.game.AddGame(token, g)
+	s.game.AddGame(g)
+
 	playerID, ok := g.GetFreePlayer()
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]string{"game": token, "player": playerID})
+
+	json.NewEncoder(w).Encode(map[string]string{"game": g.ID, "player": playerID})
 }
