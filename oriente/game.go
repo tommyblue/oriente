@@ -9,10 +9,18 @@ import (
 	"github.com/tommyblue/oriente/utils"
 )
 
-func (g *Game) MakeAction(p *Player, action *Action) bool {
+func validateAction(action string) bool {
+	return action == "attack" || action == "use_ability" || action == "pass"
+}
+
+func (g *Game) MakeAction(p *Player, action *Action) error {
+	if !validateAction(action.Action) {
+		return fmt.Errorf("invalid action %s. Possible actions: 'attack', 'use_ability', 'pass'", action.Action)
+	}
+
 	if action.Action != "pass" {
-		if !g.canPerformAction(p) {
-			return false
+		if err := g.canPerformAction(p); err != nil {
+			return err
 		}
 		p.DidAction = true
 		p.VisibleCard = true
@@ -35,7 +43,7 @@ func (g *Game) MakeAction(p *Player, action *Action) bool {
 		g.fulfillDestiny()
 	}
 	// g.endEra() // TODO
-	return true
+	return nil
 }
 
 /* When the player fulfill his destiny, these things happen:
@@ -52,32 +60,28 @@ func (g *Game) fulfillDestiny() {
 	g.TempPrize = nil
 }
 
-func (g *Game) canPerformAction(p *Player) bool {
+func (g *Game) canPerformAction(p *Player) error {
 	// First action
 	if g.CalledAction == nil {
-		return true
+		return nil
 	}
 	// A player can't perform an action if already done during this era
 	if p.DidAction {
-		log.Debug("Already did action")
-		return false
+		return fmt.Errorf("Already did action")
 	}
 	// The player target of the called action can't play
 	if g.CalledAction.TargetPlayerID == p.ID {
-		log.Debug("called player")
-		return false
+		return fmt.Errorf("called player")
 	}
 	// Player with less power can't stop the action
 	if p.CurrentCard.Value < g.TokenOwner.CurrentCard.Value {
-		log.Debug("less power")
-		return false
+		return fmt.Errorf("less power")
 	}
 	// If the power of the players is the same, the player must be poorer to stop the action
 	if p.CurrentCard.Value == g.TokenOwner.CurrentCard.Value && len(p.Points) >= len(g.TokenOwner.Points) {
-		log.Debug("too rich")
-		return false
+		return fmt.Errorf("too rich")
 	}
-	return true
+	return nil
 }
 
 func (g *Game) nextPlayerTurn() {
@@ -143,7 +147,10 @@ func (g *Game) pickCard() *Card {
 	return c
 }
 
-func (g *Game) generatePlayers(nPlayers int) {
+func (g *Game) generatePlayers(nPlayers int) error {
+	if g.Deck == nil {
+		return fmt.Errorf("Must generate the deck before players")
+	}
 	// This is the deck of cards with money
 	coinsDeck := []*Card{
 		&Card{Name: "2 Coins", Value: 2},
@@ -175,6 +182,7 @@ func (g *Game) generatePlayers(nPlayers int) {
 
 	g.TokenOwner = g.Players[0]
 	g.NextPlayer = g.Players[0]
+	return nil
 }
 
 func (g *Game) generateDeck() {
@@ -196,7 +204,7 @@ func (g *Game) generateDeck() {
 	// Shuffle
 	rand.Shuffle(len(tmpDeck), func(i, j int) { tmpDeck[i], tmpDeck[j] = tmpDeck[j], tmpDeck[i] })
 
-	// Get 4 cards fot the base
+	// Get 4 cards for the base
 	base := make([]*Card, 4)
 	copy(base, tmpDeck[0:4])
 	tmpDeck = append(tmpDeck[:0], tmpDeck[4:]...)

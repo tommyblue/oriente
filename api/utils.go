@@ -7,10 +7,6 @@ import (
 	"github.com/tommyblue/oriente/oriente"
 )
 
-func validateAction(action string) bool {
-	return action == "attack" || action == "use_ability" || action == "pass"
-}
-
 // Build the JSON response for the game status
 func gameStatusResponse(g *oriente.Game, playerID string) map[string]interface{} {
 	var players []map[string]interface{}

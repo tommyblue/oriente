@@ -21,13 +21,18 @@ func Initialize(s *store.Store) *Oriente {
 	return o
 }
 
-func NewGame(nPlayers int) *Game {
+func NewGame(nPlayers int) (*Game, error) {
+	if nPlayers < 4 || nPlayers > 12 {
+		return nil, fmt.Errorf("Players must be between 4 and 12")
+	}
 	g := &Game{ID: utils.IDGenerator()}
 	g.generateDeck()
 	g.addPrize()
-	g.generatePlayers(nPlayers)
+	if err := g.generatePlayers(nPlayers); err != nil {
+		log.Fatal(err)
+	}
 
-	return g
+	return g, nil
 }
 
 func (o *Oriente) AddGame(g *Game) {

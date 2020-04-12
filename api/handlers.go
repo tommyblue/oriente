@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -20,7 +21,6 @@ When it calls:
 - tell the action ("pass", "attack" or "use_ability")
 - turn is to the next player
 */
-// TODO: Move some game logic into oriente package
 func (s *server) actionHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
@@ -31,7 +31,7 @@ func (s *server) actionHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "the game doesn't exist"
-		log.Info(msg)
+		log.Error(msg)
 		json.NewEncoder(w).Encode(map[string]string{
 			"error": msg,
 		})
@@ -48,38 +48,18 @@ func (s *server) actionHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "the player doesn't exist in this game"
-		log.Info(msg)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": msg,
-		})
-		return
-	}
-
-	if p.DidAction {
-		w.WriteHeader(http.StatusBadRequest)
-		msg := "the player already played during this era"
-		log.Info(msg)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": msg,
-		})
-		return
-	}
-	if ok := validateAction(a.Action); !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		msg := "invalid action. Possible actions: 'attack', 'use_ability', 'pass'"
-		log.Info(msg)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": msg,
-		})
-		return
-	}
-
-	if ok := g.MakeAction(p, &a); !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		msg := "Cannot perform the action"
 		log.Error(msg)
 		json.NewEncoder(w).Encode(map[string]string{
 			"error": msg,
+		})
+		return
+	}
+
+	if err := g.MakeAction(p, &a); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Error(err)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("%v", err),
 		})
 		return
 	}
@@ -129,7 +109,7 @@ func (s *server) newPlayerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	log.Debugf("Adding player %s", playerID)
+	log.Infof("Adding player %s", playerID)
 	json.NewEncoder(w).Encode(map[string]string{"game": vars["game_id"], "player": playerID})
 }
 
@@ -146,7 +126,11 @@ func (s *server) newGameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	g := oriente.NewGame(p)
+	g, err := oriente.NewGame(p)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	s.game.AddGame(g)
 
 	playerID, ok := g.GetFreePlayer()
