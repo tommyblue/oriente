@@ -29,7 +29,7 @@ type Game struct {
 	Laborers     int
 	Deck         []*Card
 	TokenOwner   *Player // The last player that called the action or the first to play in an era
-	NextPlayer   *Player // The next player to play the turn
+	NextPlayer   *Player // The next player to play the turn. If nil, it's the first turn and the token owner plays
 	Prize        []*Card // The cards that will be won by the first playing player
 	TempPrize    []*Card // The Prize is moved here when the player starts fulfilling his destiny
 	CalledAction *Action // the action the player wants to perform ("pass", "attack" or "use_ability")

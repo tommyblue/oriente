@@ -2,20 +2,17 @@ package oriente
 
 import (
 	"fmt"
-	"math/rand"
 
 	log "github.com/sirupsen/logrus"
-
-	"github.com/tommyblue/oriente/utils"
 )
 
-func validateAction(action string) bool {
-	return action == "attack" || action == "use_ability" || action == "pass"
-}
-
 func (g *Game) MakeAction(p *Player, action *Action) error {
-	if !validateAction(action.Action) {
+	if action.Action != "attack" && action.Action != "use_ability" && action.Action != "pass" {
 		return fmt.Errorf("invalid action %s. Possible actions: 'attack', 'use_ability', 'pass'", action.Action)
+	}
+
+	if p != g.NextPlayer {
+		return fmt.Errorf("not the turn of the player")
 	}
 
 	if action.Action != "pass" {
@@ -36,14 +33,52 @@ func (g *Game) MakeAction(p *Player, action *Action) error {
 		// The player gets the token
 		g.TokenOwner = p
 	}
-	g.nextPlayerTurn()
-	g.Round++
+
 	// The loop has ended, the destiny can be fulfilled
-	if g.NextPlayer == p { // TODO: is this check correct?
-		g.fulfillDestiny()
-	}
-	// g.endEra() // TODO
+	// if g.NextPlayer == p { // TODO: is this check correct?
+	// 	g.fulfillDestiny()
+	// }
+	g.nextPlayerTurn()
+	g.checkEndEra()
+	g.Round++
 	return nil
+}
+
+/* The era ends if:
+- all player passed
+or
+- nobody owns the action token
+or
+- all players with the action token passed
+At the end of the era:
+- a new card is put on the prize deck
+- all players get a new action token
+- the TokenOwner will play the next turn
+*/
+func (g *Game) checkEndEra() {
+	check := false
+	// All players passed
+	if g.NextPlayer.ID == g.TokenOwner.ID {
+		check = true
+	}
+	// Check if at least one player still has the action token
+	allDidAction := true
+	for _, p := range g.Players {
+		if !p.DidAction {
+			allDidAction = false
+			break
+		}
+	}
+	if check || allDidAction {
+		// Set NextPlayer to nil so that the next turn will be played by the TokenOwner
+		g.NextPlayer = g.TokenOwner
+		// Add a card to the prize
+		g.Prize = append(g.Prize, g.pickCard()) // TODO: check if there's at least one card left in the deck
+		// Reset the action tokens
+		for _, p := range g.Players {
+			p.DidAction = false
+		}
+	}
 }
 
 /* When the player fulfill his destiny, these things happen:
@@ -85,20 +120,13 @@ func (g *Game) canPerformAction(p *Player) error {
 }
 
 func (g *Game) nextPlayerTurn() {
-	found := false
-	for _, p := range g.Players {
-		if found {
-			g.NextPlayer = p
+	for i, p := range g.Players {
+		if p.ID == g.NextPlayer.ID {
+			g.NextPlayer = g.Players[(i+1)%len(g.Players)]
 			return
 		}
-
-		if p.ID == g.NextPlayer.ID {
-			found = true
-		}
 	}
-
-	// TODO: is this always true?
-	g.NextPlayer = g.Players[0]
+	log.Fatal("Can't find next player")
 }
 
 func (g *Game) GameStarted() bool {
@@ -145,95 +173,4 @@ func (g *Game) pickCard() *Card {
 	c := g.Deck[len(g.Deck)-1]
 	g.Deck = g.Deck[:len(g.Deck)-1]
 	return c
-}
-
-func (g *Game) generatePlayers(nPlayers int) error {
-	if g.Deck == nil {
-		return fmt.Errorf("Must generate the deck before players")
-	}
-	// This is the deck of cards with money
-	coinsDeck := []*Card{
-		&Card{Name: "2 Coins", Value: 2},
-		&Card{Name: "2 Coins", Value: 2},
-		&Card{Name: "2 Coins", Value: 2},
-		&Card{Name: "2 Coins", Value: 2},
-		&Card{Name: "3 Coins", Value: 3},
-		&Card{Name: "3 Coins", Value: 3},
-		&Card{Name: "3 Coins", Value: 3},
-		&Card{Name: "3 Coins", Value: 3},
-		&Card{Name: "4 Coins", Value: 4},
-		&Card{Name: "4 Coins", Value: 4},
-		&Card{Name: "4 Coins", Value: 4},
-		&Card{Name: "4 Coins", Value: 4},
-	}
-
-	for i := 0; i < nPlayers; i++ {
-		mIdx := rand.Intn(len(coinsDeck))
-		coin := coinsDeck[mIdx]
-		p := &Player{
-			ID:          utils.IDGenerator(),
-			Name:        fmt.Sprintf("player_%d", i),
-			CurrentCard: g.pickCard(),
-		}
-		p.Points = append(p.Points, coin)
-		g.Players = append(g.Players, p)
-		coinsDeck = append(coinsDeck[:mIdx], coinsDeck[mIdx+1:]...)
-	}
-
-	g.TokenOwner = g.Players[0]
-	g.NextPlayer = g.Players[0]
-	return nil
-}
-
-func (g *Game) generateDeck() {
-
-	tmpDeck := []*Card{}
-	// Add 12 Nofu
-	tmpDeck = append(tmpDeck, generateCard(Nofu, 12)...)
-	// Add 7 Akindo
-	tmpDeck = append(tmpDeck, generateCard(Akindo, 7)...)
-	// Add 6 Samurai
-	tmpDeck = append(tmpDeck, generateCard(Samurai, 6)...)
-	// Add 5 Daimyo
-	tmpDeck = append(tmpDeck, generateCard(Daimyo, 5)...)
-	// Add 4 Moho-Tsukai
-	tmpDeck = append(tmpDeck, generateCard(MahoTsukai, 4)...)
-	// Add 2 Soryo
-	tmpDeck = append(tmpDeck, generateCard(Soryo, 2)...)
-
-	// Shuffle
-	rand.Shuffle(len(tmpDeck), func(i, j int) { tmpDeck[i], tmpDeck[j] = tmpDeck[j], tmpDeck[i] })
-
-	// Get 4 cards for the base
-	base := make([]*Card, 4)
-	copy(base, tmpDeck[0:4])
-	tmpDeck = append(tmpDeck[:0], tmpDeck[4:]...)
-
-	// Get 4 cards and insert Geisha, shuffle
-	wGeisha := make([]*Card, 4)
-	copy(wGeisha, tmpDeck[0:4])
-	tmpDeck = append(tmpDeck[:0], tmpDeck[4:]...)
-	wGeisha = append(wGeisha, generateCard(Geisha, 1)...)
-	rand.Shuffle(len(wGeisha), func(i, j int) { wGeisha[i], wGeisha[j] = wGeisha[j], wGeisha[i] })
-
-	// Get remaining cards and add 1 Shogun and 3 Ninja, shuffle
-	tmpDeck = append(tmpDeck, generateCard(Shogun, 1)...)
-	tmpDeck = append(tmpDeck, generateCard(Ninja, 3)...)
-	rand.Shuffle(len(tmpDeck), func(i, j int) { tmpDeck[i], tmpDeck[j] = tmpDeck[j], tmpDeck[i] })
-
-	// Compile the deck: 4 cards + (4 cards + 1 Geisha) + all other cards
-	g.Deck = append(g.Deck, base...)
-	g.Deck = append(g.Deck, wGeisha...)
-	g.Deck = append(g.Deck, tmpDeck...)
-}
-
-func generateCard(c Character, n int) []*Card {
-	v := []*Card{}
-	for i := 0; i < n; i++ {
-		v = append(v, &Card{
-			Name:  c.String(),
-			Value: c,
-		})
-	}
-	return v
 }

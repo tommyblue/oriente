@@ -1,0 +1,102 @@
+{
+  "id": "e4369bca",
+  "Round": 0,
+  "Players": [
+    {
+      "ID": "player_0",
+      "Name": "player_0",
+      "CurrentCard": { "Name": "Maho-Tsukai", "Value": 5 },
+      "VisibleCard": false,
+      "DidAction": false,
+      "Points": [{ "Name": "4 Coins", "Value": 4 }],
+      "Managed": true
+    },
+    {
+      "ID": "player_1",
+      "Name": "player_1",
+      "CurrentCard": { "Name": "Shogun", "Value": 7 },
+      "VisibleCard": false,
+      "DidAction": false,
+      "Points": [{ "Name": "2 Coins", "Value": 2 }],
+      "Managed": true
+    },
+    {
+      "ID": "player_2",
+      "Name": "player_2",
+      "CurrentCard": { "Name": "Akindo", "Value": 2 },
+      "VisibleCard": false,
+      "DidAction": false,
+      "Points": [{ "Name": "3 Coins", "Value": 3 }],
+      "Managed": true
+    },
+    {
+      "ID": "player_3",
+      "Name": "player_3",
+      "CurrentCard": { "Name": "Maho-Tsukai", "Value": 5 },
+      "VisibleCard": false,
+      "DidAction": false,
+      "Points": [{ "Name": "3 Coins", "Value": 3 }],
+      "Managed": true
+    }
+  ],
+  "Laborers": 0,
+  "Deck": [
+    { "Name": "Maho-Tsukai", "Value": 5 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Daimyo", "Value": 4 },
+    { "Name": "Samurai", "Value": 3 },
+    { "Name": "Daimyo", "Value": 4 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Akindo", "Value": 2 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Geisha", "Value": 8 },
+    { "Name": "Ninja", "Value": 0 },
+    { "Name": "Samurai", "Value": 3 },
+    { "Name": "Akindo", "Value": 2 },
+    { "Name": "Soryo", "Value": 6 },
+    { "Name": "Daimyo", "Value": 4 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Soryo", "Value": 6 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Akindo", "Value": 2 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Samurai", "Value": 3 },
+    { "Name": "Samurai", "Value": 3 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Akindo", "Value": 2 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Ninja", "Value": 0 },
+    { "Name": "Akindo", "Value": 2 },
+    { "Name": "Akindo", "Value": 2 },
+    { "Name": "Daimyo", "Value": 4 },
+    { "Name": "Nofu", "Value": 1 },
+    { "Name": "Maho-Tsukai", "Value": 5 },
+    { "Name": "Samurai", "Value": 3 },
+    { "Name": "Samurai", "Value": 3 },
+    { "Name": "Daimyo", "Value": 4 }
+  ],
+  "TokenOwner": {
+    "ID": "player_0",
+    "Name": "player_0",
+    "CurrentCard": { "Name": "Maho-Tsukai", "Value": 5 },
+    "VisibleCard": false,
+    "DidAction": false,
+    "Points": [{ "Name": "4 Coins", "Value": 4 }],
+    "Managed": true
+  },
+  "NextPlayer": {
+    "ID": "player_0",
+    "Name": "player_0",
+    "CurrentCard": { "Name": "Maho-Tsukai", "Value": 5 },
+    "VisibleCard": false,
+    "DidAction": false,
+    "Points": [{ "Name": "4 Coins", "Value": 4 }],
+    "Managed": true
+  },
+  "Prize": [{ "Name": "Ninja", "Value": 0 }],
+  "TempPrize": null,
+  "CalledAction": null
+}
