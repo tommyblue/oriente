@@ -83,11 +83,11 @@ func Test_generatePlayers(t *testing.T) {
 	if len(g.Players) != nPlayers {
 		t.Errorf("players: want: %d, got: %d", nPlayers, len(g.Players))
 	}
-	if g.TokenOwner != g.Players[0] {
+	if g.TokenOwnerID != g.Players[0].ID {
 		t.Errorf("Wrong TokenOwner")
 	}
-	if g.NextPlayer != g.Players[0] {
-		t.Errorf("NextPlayer want %s, got %s", g.Players[0].ID, g.NextPlayer.ID)
+	if g.NextPlayerID != g.Players[0].ID {
+		t.Errorf("NextPlayer want %s, got %s", g.Players[0].ID, g.NextPlayerID)
 	}
 	for i, p := range g.Players {
 		if p.CurrentCard == nil {

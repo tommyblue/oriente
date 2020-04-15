@@ -67,12 +67,21 @@ func (o *Oriente) loadGames() error {
 		return err
 	}
 	for token, g := range games {
-		var game Game
-		if err := json.Unmarshal(g, &game); err != nil {
+		log.Infof("Found game %s", token)
+		game, err := LoadGame(g)
+		if err != nil {
 			return err
 		}
-		log.Infof("Found game %s", token)
-		o.RunningGames[token] = &game
+		o.RunningGames[token] = game
+
 	}
 	return nil
+}
+
+func LoadGame(g []byte) (*Game, error) {
+	var game Game
+	if err := json.Unmarshal(g, &game); err != nil {
+		return nil, err
+	}
+	return &game, nil
 }

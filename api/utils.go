@@ -30,10 +30,6 @@ func gameStatusResponse(g *oriente.Game, playerID string) map[string]interface{}
 		}
 		players = append(players, player)
 	}
-	var tokenOwner string
-	if g.TokenOwner != nil {
-		tokenOwner = g.TokenOwner.ID
-	}
 	action := map[string]interface{}{}
 	if g.CalledAction != nil {
 		action["action"] = g.CalledAction.Action
@@ -42,18 +38,14 @@ func gameStatusResponse(g *oriente.Game, playerID string) map[string]interface{}
 			action["target_player_id"] = g.CalledAction.TargetPlayerID
 		}
 	}
-	var nextPlayer string
-	if g.NextPlayer != nil {
-		nextPlayer = g.NextPlayer.ID
-	}
 	return map[string]interface{}{
 		"round":          g.Round,
 		"players":        players,
 		"active_players": g.ActivePlayers(),
 		"game_started":   g.GameStarted(),
-		"token_owner":    tokenOwner,
-		"next_player":    nextPlayer,
-		"your_turn":      g.NextPlayer.ID == playerID,
+		"token_owner":    g.TokenOwnerID,
+		"next_player":    g.NextPlayerID,
+		"your_turn":      g.NextPlayerID == playerID,
 		"called_action":  action,
 		"prize_cards":    len(g.Prize), // Number of cards that the player playing first in the era will win
 	}

@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -22,8 +21,8 @@ func TestGameGetPlayers(t *testing.T) {
 	if !ok {
 		t.Error("Can't get player 1")
 	}
-	_, ok = g.GetPlayer(p1_tk)
-	if !ok {
+	p1 := g.GetPlayer(p1_tk)
+	if p1 == nil {
 		t.Errorf("Can't get player 1 %s", p1_tk)
 	}
 
@@ -31,8 +30,8 @@ func TestGameGetPlayers(t *testing.T) {
 	if !ok {
 		t.Error("Can't get player 2")
 	}
-	_, ok = g.GetPlayer(p2_tk)
-	if !ok {
+	p2 := g.GetPlayer(p2_tk)
+	if p2 == nil {
 		t.Errorf("Can't get player 2 %s", p2_tk)
 	}
 
@@ -40,8 +39,8 @@ func TestGameGetPlayers(t *testing.T) {
 	if !ok {
 		t.Error("Can't get player 3")
 	}
-	_, ok = g.GetPlayer(p3_tk)
-	if !ok {
+	p3 := g.GetPlayer(p3_tk)
+	if p3 == nil {
 		t.Errorf("Can't get player 3 %s", p3_tk)
 	}
 
@@ -49,8 +48,8 @@ func TestGameGetPlayers(t *testing.T) {
 	if !ok {
 		t.Error("Can't get player 4")
 	}
-	_, ok = g.GetPlayer(p4_tk)
-	if !ok {
+	p4 := g.GetPlayer(p4_tk)
+	if p4 == nil {
 		t.Errorf("Can't get player 4 %s", p4_tk)
 	}
 
@@ -68,13 +67,16 @@ func TestGame(t *testing.T) {
 	if err != nil {
 		t.Fatalf("opening %q: %v", f, err)
 	}
-	var g oriente.Game
-	if err := json.Unmarshal(raw_g, &g); err != nil {
+	g, err := oriente.LoadGame(raw_g)
+	if err != nil {
 		t.Fatalf("unmarshalling %q: %v", raw_g, err)
 	}
 	if !g.GameStarted() {
 		t.Fatalf("Game not started")
 	}
+
+	// 1st era
+
 	if len(g.Prize) != 1 {
 		t.Fatalf("Prize want: %d, got %d", 1, len(g.Prize))
 	}
@@ -82,33 +84,69 @@ func TestGame(t *testing.T) {
 	if g.Round != round {
 		t.Fatalf("Round want %d, got %d", round, g.Round)
 	}
-	if err := g.MakeAction(g.NextPlayer, &oriente.Action{Action: "pass"}); err != nil {
-		t.Fatalf("Initial action %v", err)
+	if err := g.MakeAction(g.NextPlayerID, &oriente.Action{Action: "pass"}); err != nil {
+		t.Fatalf("e1 a1 %v", err)
 	}
 	round++
-	if g.NextPlayer != g.Players[1] {
-		t.Fatalf("Player: want %s, got: %s", g.Players[1].ID, g.NextPlayer.ID)
+	if g.NextPlayerID != g.Players[1].ID {
+		t.Fatalf("Player: want %s, got: %s", g.Players[1].ID, g.NextPlayerID)
 	}
 	if g.Round != round {
 		t.Fatalf("Round want %d, got %d", round, g.Round)
 	}
 	// make a full loop of "pass"
-	if err := g.MakeAction(g.NextPlayer, &oriente.Action{Action: "pass"}); err != nil {
-		t.Fatalf("Action 2 %v", err)
+	if err := g.MakeAction(g.NextPlayerID, &oriente.Action{Action: "pass"}); err != nil {
+		t.Fatalf("e1 a2 %v", err)
 	}
 	round++
-	if err := g.MakeAction(g.NextPlayer, &oriente.Action{Action: "pass"}); err != nil {
-		t.Fatalf("Action 2 %v", err)
+	if g.Round != round {
+		t.Fatalf("Round want %d, got %d", round, g.Round)
+	}
+	if err := g.MakeAction(g.NextPlayerID, &oriente.Action{Action: "pass"}); err != nil {
+		t.Fatalf("e1 a3 %v", err)
 	}
 	round++
-	if err := g.MakeAction(g.NextPlayer, &oriente.Action{Action: "pass"}); err != nil {
-		t.Fatalf("Action 2 %v", err)
+	if g.Round != round {
+		t.Fatalf("Round want %d, got %d", round, g.Round)
+	}
+	if err := g.MakeAction(g.NextPlayerID, &oriente.Action{Action: "pass"}); err != nil {
+		t.Fatalf("e1 a4 %v", err)
 	}
 	round++
-	if g.NextPlayer.ID != g.Players[0].ID {
-		t.Fatalf("Player: want %s, got: %s", g.Players[0].ID, g.NextPlayer.ID)
+	if g.Round != round {
+		t.Fatalf("Round want %d, got %d", round, g.Round)
+	}
+	if g.NextPlayerID != g.Players[0].ID {
+		t.Fatalf("Player: want %s, got: %s", g.Players[0].ID, g.NextPlayerID)
 	}
 	if len(g.Prize) != 2 {
 		t.Fatalf("Prize want: %d, got %d", 2, len(g.Prize))
+	}
+
+	// 2nd era
+	if g.CalledAction != nil {
+		t.Fatalf("called action: want: %v, got: %v", nil, g.CalledAction)
+	}
+	// player_0 (mahotsukai) attacks player_1 (shogun)
+	a := oriente.Action{
+		Action:         "attack",
+		SourcePlayerID: g.NextPlayerID,
+		TargetPlayerID: g.Players[1].ID,
+	}
+	if err := g.MakeAction(g.NextPlayerID, &a); err != nil {
+		t.Fatalf("e2 a1 %v", err)
+	}
+	round++
+	if g.Round != round {
+		t.Fatalf("Round want %d, got %d", round, g.Round)
+	}
+	if g.CalledAction == nil {
+		t.Fatalf("called action: want: %v, got: %v", a, g.CalledAction)
+	}
+	if !g.Players[0].VisibleCard {
+		t.Fatalf("p0 visible card, want: %t, got: %t", true, g.Players[0].VisibleCard)
+	}
+	if !g.Players[0].DidAction {
+		t.Fatalf("p0 did action, want: %t, got: %t", true, g.Players[0].DidAction)
 	}
 }

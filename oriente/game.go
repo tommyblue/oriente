@@ -6,12 +6,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (g *Game) MakeAction(p *Player, action *Action) error {
+func (g *Game) MakeAction(playerID string, action *Action) error {
 	if action.Action != "attack" && action.Action != "use_ability" && action.Action != "pass" {
 		return fmt.Errorf("invalid action %s. Possible actions: 'attack', 'use_ability', 'pass'", action.Action)
 	}
-
-	if p != g.NextPlayer {
+	p := g.GetPlayer(playerID)
+	if p == nil {
+		return fmt.Errorf("Can't find the player")
+	}
+	if p.ID != g.NextPlayerID {
 		return fmt.Errorf("not the turn of the player")
 	}
 
@@ -23,15 +26,15 @@ func (g *Game) MakeAction(p *Player, action *Action) error {
 		p.VisibleCard = true
 		// If the player is "stealing" the action to another player, that player Action must be reset
 		if g.CalledAction != nil {
-			p, ok := g.GetPlayer(g.CalledAction.SourcePlayerID)
-			if !ok {
+			p := g.GetPlayer(g.CalledAction.SourcePlayerID)
+			if p == nil {
 				log.Panicf("Unknown player ID %s that already did called the action", g.CalledAction.SourcePlayerID)
 			}
 			p.DidAction = false
 		}
 		g.CalledAction = action
 		// The player gets the token
-		g.TokenOwner = p
+		g.TokenOwnerID = p.ID
 	}
 
 	// The loop has ended, the destiny can be fulfilled
@@ -58,7 +61,7 @@ At the end of the era:
 func (g *Game) checkEndEra() {
 	check := false
 	// All players passed
-	if g.NextPlayer.ID == g.TokenOwner.ID {
+	if g.NextPlayerID == g.TokenOwnerID {
 		check = true
 	}
 	// Check if at least one player still has the action token
@@ -70,8 +73,8 @@ func (g *Game) checkEndEra() {
 		}
 	}
 	if check || allDidAction {
-		// Set NextPlayer to nil so that the next turn will be played by the TokenOwner
-		g.NextPlayer = g.TokenOwner
+		// Set NextPlayer to the TokenOwner
+		g.NextPlayerID = g.TokenOwnerID
 		// Add a card to the prize
 		g.Prize = append(g.Prize, g.pickCard()) // TODO: check if there's at least one card left in the deck
 		// Reset the action tokens
@@ -91,7 +94,7 @@ func (g *Game) fulfillDestiny() {
 	g.TempPrize = g.Prize
 	g.Prize = nil
 	// 2
-	g.NextPlayer.Points = append(g.NextPlayer.Points, g.TempPrize...)
+	g.NextPlayer().Points = append(g.NextPlayer().Points, g.TempPrize...)
 	g.TempPrize = nil
 }
 
@@ -109,11 +112,11 @@ func (g *Game) canPerformAction(p *Player) error {
 		return fmt.Errorf("called player")
 	}
 	// Player with less power can't stop the action
-	if p.CurrentCard.Value < g.TokenOwner.CurrentCard.Value {
+	if p.CurrentCard.Value < g.TokenOwner().CurrentCard.Value {
 		return fmt.Errorf("less power")
 	}
 	// If the power of the players is the same, the player must be poorer to stop the action
-	if p.CurrentCard.Value == g.TokenOwner.CurrentCard.Value && len(p.Points) >= len(g.TokenOwner.Points) {
+	if p.CurrentCard.Value == g.TokenOwner().CurrentCard.Value && len(p.Points) >= len(g.TokenOwner().Points) {
 		return fmt.Errorf("too rich")
 	}
 	return nil
@@ -121,8 +124,8 @@ func (g *Game) canPerformAction(p *Player) error {
 
 func (g *Game) nextPlayerTurn() {
 	for i, p := range g.Players {
-		if p.ID == g.NextPlayer.ID {
-			g.NextPlayer = g.Players[(i+1)%len(g.Players)]
+		if p.ID == g.NextPlayerID {
+			g.NextPlayerID = g.Players[(i+1)%len(g.Players)].ID
 			return
 		}
 	}
@@ -145,13 +148,13 @@ func (g *Game) ActivePlayers() int {
 }
 
 // Player return the player
-func (g *Game) GetPlayer(playerID string) (*Player, bool) {
+func (g *Game) GetPlayer(playerID string) *Player {
 	for _, p := range g.Players {
 		if p.ID == playerID {
-			return p, true
+			return p
 		}
 	}
-	return nil, false
+	return nil
 }
 
 // GetFreePlayer return the ID of the first available spot in the game
@@ -173,4 +176,22 @@ func (g *Game) pickCard() *Card {
 	c := g.Deck[len(g.Deck)-1]
 	g.Deck = g.Deck[:len(g.Deck)-1]
 	return c
+}
+
+// NextPlayer returns the next player to play
+func (g *Game) NextPlayer() *Player {
+	p := g.GetPlayer(g.NextPlayerID)
+	if p == nil {
+		log.Fatal("Can't find next player")
+	}
+	return p
+}
+
+// TokenOwner is the player with the token
+func (g *Game) TokenOwner() *Player {
+	p := g.GetPlayer(g.TokenOwnerID)
+	if p == nil {
+		log.Fatal("Can't find token owner")
+	}
+	return p
 }

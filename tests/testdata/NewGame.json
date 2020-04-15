@@ -78,24 +78,8 @@
     { "Name": "Samurai", "Value": 3 },
     { "Name": "Daimyo", "Value": 4 }
   ],
-  "TokenOwner": {
-    "ID": "player_0",
-    "Name": "player_0",
-    "CurrentCard": { "Name": "Maho-Tsukai", "Value": 5 },
-    "VisibleCard": false,
-    "DidAction": false,
-    "Points": [{ "Name": "4 Coins", "Value": 4 }],
-    "Managed": true
-  },
-  "NextPlayer": {
-    "ID": "player_0",
-    "Name": "player_0",
-    "CurrentCard": { "Name": "Maho-Tsukai", "Value": 5 },
-    "VisibleCard": false,
-    "DidAction": false,
-    "Points": [{ "Name": "4 Coins", "Value": 4 }],
-    "Managed": true
-  },
+  "token_owner_id": "player_0",
+  "next_player_id": "player_0",
   "Prize": [{ "Name": "Ninja", "Value": 0 }],
   "TempPrize": null,
   "CalledAction": null

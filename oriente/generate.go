@@ -40,8 +40,8 @@ func (g *Game) generatePlayers(nPlayers int) error {
 		coinsDeck = append(coinsDeck[:mIdx], coinsDeck[mIdx+1:]...)
 	}
 
-	g.TokenOwner = g.Players[0]
-	g.NextPlayer = g.Players[0]
+	g.TokenOwnerID = g.Players[0].ID
+	g.NextPlayerID = g.Players[0].ID
 	return nil
 }
 

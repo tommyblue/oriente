@@ -44,18 +44,8 @@ func (s *server) actionHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	p, ok := g.GetPlayer(a.SourcePlayerID)
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		msg := "the player doesn't exist in this game"
-		log.Error(msg)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": msg,
-		})
-		return
-	}
 
-	if err := g.MakeAction(p, &a); err != nil {
+	if err := g.MakeAction(a.SourcePlayerID, &a); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		log.Error(err)
 		json.NewEncoder(w).Encode(map[string]string{
@@ -65,7 +55,7 @@ func (s *server) actionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(gameStatusResponse(g, p.ID))
+	json.NewEncoder(w).Encode(gameStatusResponse(g, a.SourcePlayerID))
 }
 
 // Return status of the game
@@ -80,8 +70,8 @@ func (s *server) gameStatusHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	p, ok := g.GetPlayer(vars["player"])
-	if !ok {
+	p := g.GetPlayer(vars["player"])
+	if p == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
