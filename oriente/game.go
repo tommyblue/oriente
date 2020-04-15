@@ -7,7 +7,7 @@ import (
 )
 
 func (g *Game) MakeAction(playerID string, action *Action) error {
-	if action.Action != "attack" && action.Action != "use_ability" && action.Action != "pass" {
+	if action.Action != AttackAction && action.Action != UseAbilityAction && action.Action != PassAction {
 		return fmt.Errorf("invalid action %s. Possible actions: 'attack', 'use_ability', 'pass'", action.Action)
 	}
 	p := g.GetPlayer(playerID)
@@ -18,7 +18,7 @@ func (g *Game) MakeAction(playerID string, action *Action) error {
 		return fmt.Errorf("not the turn of the player")
 	}
 
-	if action.Action != "pass" {
+	if action.Action != PassAction {
 		if err := g.canPerformAction(p); err != nil {
 			return err
 		}
@@ -125,7 +125,13 @@ func (g *Game) canPerformAction(p *Player) error {
 func (g *Game) nextPlayerTurn() {
 	for i, p := range g.Players {
 		if p.ID == g.NextPlayerID {
-			g.NextPlayerID = g.Players[(i+1)%len(g.Players)].ID
+			nextP := g.Players[(i+1)%len(g.Players)].ID
+			// The player target of the previous action can't play this turn, so it goes to the
+			// following player
+			if g.CalledAction != nil && nextP == g.CalledAction.TargetPlayerID {
+				nextP = g.Players[(i+2)%len(g.Players)].ID
+			}
+			g.NextPlayerID = nextP
 			return
 		}
 	}

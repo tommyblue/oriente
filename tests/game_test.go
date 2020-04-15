@@ -128,12 +128,12 @@ func TestGame(t *testing.T) {
 		t.Fatalf("called action: want: %v, got: %v", nil, g.CalledAction)
 	}
 	// player_0 (mahotsukai) attacks player_1 (shogun)
-	a := oriente.Action{
+	a := &oriente.Action{
 		Action:         "attack",
 		SourcePlayerID: g.NextPlayerID,
 		TargetPlayerID: g.Players[1].ID,
 	}
-	if err := g.MakeAction(g.NextPlayerID, &a); err != nil {
+	if err := g.MakeAction(g.NextPlayerID, a); err != nil {
 		t.Fatalf("e2 a1 %v", err)
 	}
 	round++
@@ -148,5 +148,21 @@ func TestGame(t *testing.T) {
 	}
 	if !g.Players[0].DidAction {
 		t.Fatalf("p0 did action, want: %t, got: %t", true, g.Players[0].DidAction)
+	}
+	if g.CalledAction.TargetPlayerID == g.NextPlayerID {
+		t.Fatalf("target player %s must not be the next (%s)", g.CalledAction.TargetPlayerID, g.NextPlayerID)
+	}
+	if g.NextPlayerID != g.Players[2].ID {
+		t.Fatalf("e2 a1 next player, want %s got %s", g.Players[2].ID, g.NextPlayerID)
+	}
+	// player 1 is under attack, can't make actions
+	a = &oriente.Action{
+		Action:         oriente.AttackAction,
+		SourcePlayerID: g.Players[1].ID,
+		TargetPlayerID: g.Players[2].ID,
+	}
+
+	if err := g.MakeAction(g.Players[1].ID, a); err.Error() != "not the turn of the player" {
+		t.Fatalf("player %s shouldn't do the action, err: %v", a.SourcePlayerID, err)
 	}
 }

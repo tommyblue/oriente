@@ -18,9 +18,9 @@ type Player struct {
 }
 
 type Action struct {
-	Action         string `json:"action"`           // Can be "pass", "attack" or "use_ability". attack requires to fill in the player id
-	SourcePlayerID string `json:"source_player_id"` // The player performing the action
-	TargetPlayerID string `json:"target_player_id"` // The player target of the action
+	Action         ActionType `json:"action"`           // Can be "pass", "attack" or "use_ability". attack requires to fill in the player id
+	SourcePlayerID string     `json:"source_player_id"` // The player performing the action
+	TargetPlayerID string     `json:"target_player_id"` // The player target of the action
 }
 type Game struct {
 	ID           string `json:"id"` // ID of the game
@@ -56,4 +56,12 @@ const (
 	Soryo
 	Shogun
 	Geisha
+)
+
+type ActionType string
+
+const (
+	AttackAction     ActionType = "attack"
+	PassAction       ActionType = "pass"
+	UseAbilityAction ActionType = "use_ability"
 )
