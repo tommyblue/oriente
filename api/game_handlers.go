@@ -21,7 +21,7 @@ When it calls:
 - tell the action ("pass", "attack" or "use_ability")
 - turn is to the next player
 */
-func (s *server) actionHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGameAction(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
@@ -59,7 +59,7 @@ func (s *server) actionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Return status of the game
-func (s *server) gameStatusHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGameStatus(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
@@ -81,7 +81,7 @@ func (s *server) gameStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add a new player to the game
-func (s *server) newPlayerHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGamePlayerNew(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
@@ -104,7 +104,7 @@ func (s *server) newPlayerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create new game
-func (s *server) newGameHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGameNew(w http.ResponseWriter, r *http.Request) {
 	if ok := enableCors(w, r); ok {
 		return
 	}
