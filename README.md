@@ -29,3 +29,11 @@ The names and sizes of the images are listed below:
 | Square      | square.png  | 640x1000          |
 
 You can choose whatever TTF font you like the most. Put the TTF file in `web/src/fonts/font.ttf`
+
+## Development
+
+### WIP
+
+* Use special powers
+* Lords agreements before a battle
+* Frontend
