@@ -129,6 +129,10 @@ func (g *Game) checkAndFulfillDestiny() bool {
 	// 3
 	g.NextPlayer().Points = append(g.NextPlayer().Points, g.TempPrize...)
 	g.TempPrize = nil
+
+	// 4
+	g.NextPlayerID = g.TokenOwnerID
+
 	return true
 }
 

@@ -219,6 +219,14 @@ func TestGame(t *testing.T) {
 		t.Fatalf("p0 card, want: different (%s), got: same (%s)", p0Card.Name, g.Players[0].CurrentCard.Name)
 	}
 
+	// p1 is the token owner, as such it's the next to play
+	if g.NextPlayerID != g.TokenOwnerID || g.NextPlayerID != g.Players[0].ID {
+		t.Fatalf("Wrong next player. Token owner: %s, nextPlayer: %s, want: %s", g.TokenOwnerID, g.NextPlayerID, g.Players[0].ID)
+	}
+
 	// New era
 	// the prize is 1 again
+	if len(g.Prize) != 1 {
+		t.Fatalf("e2, prize, want: %d, got: %d", 1, len(g.Prize))
+	}
 }
