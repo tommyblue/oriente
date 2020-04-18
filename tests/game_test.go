@@ -9,6 +9,9 @@ import (
 )
 
 func TestGameGetPlayers(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping functional test")
+	}
 	g, err := oriente.NewGame(4)
 	if err != nil {
 		t.Error(err)
@@ -62,6 +65,9 @@ func TestGameGetPlayers(t *testing.T) {
 }
 
 func TestGame(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping functional test")
+	}
 	f := filepath.Join("testdata", "NewGame.json")
 	raw_g, err := ioutil.ReadFile(f)
 	if err != nil {
@@ -161,8 +167,58 @@ func TestGame(t *testing.T) {
 		SourcePlayerID: g.Players[1].ID,
 		TargetPlayerID: g.Players[2].ID,
 	}
-
+	p0Card := g.Players[0].CurrentCard
+	p1Card := g.Players[1].CurrentCard
 	if err := g.MakeAction(g.Players[1].ID, a); err.Error() != "not the turn of the player" {
 		t.Fatalf("player %s shouldn't do the action, err: %v", a.SourcePlayerID, err)
 	}
+
+	// player 2 and player 3 pass
+	if err := g.MakeAction(g.NextPlayerID, &oriente.Action{Action: "pass"}); err != nil {
+		t.Fatalf("e2 a2 %v", err)
+	}
+	round++
+	if g.Round != round {
+		t.Fatalf("Round want %d, got %d", round, g.Round)
+	}
+	if err := g.MakeAction(g.NextPlayerID, &oriente.Action{Action: "pass"}); err != nil {
+		t.Fatalf("e2 a3 %v", err)
+	}
+	round++
+	if g.Round != round {
+		t.Fatalf("Round want %d, got %d", round, g.Round)
+	}
+
+	// Player 1 fulfills his destiny
+
+	// p1 card: Maho-Tsukai (5)
+	// p2 card: Shogun (7)
+	// p2 wins
+
+	// Points for p1, are now 3, the initial 1 + the 2 prizes
+	if p := len(g.Players[0].Points); p != 3 {
+		t.Fatalf("p1 points, want %d, got %d", 3, p)
+	}
+	// p1 card is new, not visible
+	if g.Players[0].VisibleCard {
+		t.Fatalf("p1 card visibility, want: %t, got: %t", false, g.Players[0].VisibleCard)
+	}
+	// p2 card is visible
+	if !g.Players[1].VisibleCard {
+		t.Fatalf("p2 card visibility, want: %t, got: %t", true, g.Players[1].VisibleCard)
+	}
+	if len(g.Players[1].Points) != 2 {
+		t.Fatalf("p2 prize, want: %d, got: %d", 2, len(g.Players[1].Points))
+	}
+
+	if p1Card != g.Players[1].CurrentCard {
+		t.Fatalf("p1 card, want: %s, got: %s", p1Card.Name, g.Players[1].CurrentCard.Name)
+	}
+
+	if p0Card == g.Players[0].CurrentCard {
+		t.Fatalf("p0 card, want: different (%s), got: same (%s)", p0Card.Name, g.Players[0].CurrentCard.Name)
+	}
+
+	// New era
+	// the prize is 1 again
 }

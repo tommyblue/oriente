@@ -37,11 +37,8 @@ func (g *Game) MakeAction(playerID string, action *Action) error {
 		g.TokenOwnerID = p.ID
 	}
 
-	// The loop has ended, the destiny can be fulfilled
-	// if g.NextPlayer == p { // TODO: is this check correct?
-	// 	g.fulfillDestiny()
-	// }
 	g.nextPlayerTurn()
+	g.checkAndFulfillDestiny()
 	g.checkEndEra()
 	g.Round++
 	return nil
@@ -59,6 +56,8 @@ At the end of the era:
 - the TokenOwner will play the next turn
 */
 func (g *Game) checkEndEra() {
+	// TODO: Check if someone picked the Geisha or has 3 Ninjas
+
 	check := false
 	// All players passed
 	if g.NextPlayerID == g.TokenOwnerID {
@@ -86,16 +85,51 @@ func (g *Game) checkEndEra() {
 
 /* When the player fulfill his destiny, these things happen:
 1 - if there's a prize, move the prize in the turn's temporary prize and empty the era prize
-2 - at the end, add the temporary prize to the players points
-3 - The next turn will be of the player that owns the token
+2 - battle
+3 - at the end, add the temporary prize to the players points
+4 - The next turn will be of the player that owns the token
+5 - player(s) that lost the battle will get a new card. Their old cards are the prize for the winners
 */
-func (g *Game) fulfillDestiny() {
+func (g *Game) checkAndFulfillDestiny() bool {
+	if g.NextPlayerID != g.TokenOwnerID || g.CalledAction == nil || g.CalledAction.SourcePlayerID != g.NextPlayerID {
+		return false
+	}
+
 	// 1
 	g.TempPrize = g.Prize
 	g.Prize = nil
+
 	// 2
+	if g.CalledAction.Action == AttackAction {
+		attacker := g.GetPlayer(g.CalledAction.SourcePlayerID)
+		if attacker == nil {
+			log.Fatalf("Cannot find attacker player %s", g.CalledAction.SourcePlayerID)
+		}
+		defender := g.GetPlayer(g.CalledAction.TargetPlayerID)
+		if defender == nil {
+			log.Fatalf("Cannot find defender player %s", g.CalledAction.TargetPlayerID)
+		}
+		// The defender shows the card
+		defender.VisibleCard = true
+		if defender.CurrentCard.Value >= attacker.CurrentCard.Value {
+			// defender wins
+			defender.Points = append(defender.Points, attacker.CurrentCard)
+			attacker.CurrentCard = g.pickCard()
+			attacker.VisibleCard = false
+		} else {
+			// attacker wins
+			attacker.Points = append(attacker.Points, attacker.CurrentCard)
+			defender.CurrentCard = g.pickCard()
+			defender.VisibleCard = false
+		}
+	} else {
+		// special power
+	}
+
+	// 3
 	g.NextPlayer().Points = append(g.NextPlayer().Points, g.TempPrize...)
 	g.TempPrize = nil
+	return true
 }
 
 func (g *Game) canPerformAction(p *Player) error {
