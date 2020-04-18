@@ -33,6 +33,7 @@ type Game struct {
 	Prize        []*Card // The cards that will be won by the first playing player
 	TempPrize    []*Card // The Prize is moved here when the player starts fulfilling his destiny
 	CalledAction *Action // the action the player wants to perform ("pass", "attack" or "use_ability")
+	Winner       *Player // Nil unless the game ended, in that case is the winner player
 }
 
 type Card struct {

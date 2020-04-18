@@ -104,3 +104,46 @@ func Test_generatePlayers(t *testing.T) {
 		}
 	}
 }
+
+func Test_checkGeisha(t *testing.T) {
+	g, _ := NewGame(4)
+	haveWinner := g.checkGeisha()
+	if haveWinner {
+		t.Fatalf("newGame, winner want: %t, got %t", false, haveWinner)
+	}
+
+	// Add a Geisha
+	g.Players[0].CurrentCard = generateCard(Geisha, 1)[0]
+	haveWinner = g.checkGeisha()
+	if !haveWinner {
+		t.Fatalf("newGame, winner want: %t, got %t", true, haveWinner)
+	}
+}
+
+func Test_checkWinnerNinja(t *testing.T) {
+	g, _ := NewGame(4)
+	winner := g.checkNinjas()
+	if winner != nil {
+		t.Fatalf("newGame, winner want: %v, got %v", nil, winner.ID)
+	}
+	p1 := g.Players[0]
+	ninjas := generateCard(Ninja, 3)
+	// Add Ninjas to p1 points
+	p1.Points = append(p1.Points, ninjas[0])
+	winner = g.checkNinjas()
+	if winner != nil {
+		t.Fatalf("1 ninja, winner want: %v, got %v", nil, winner.ID)
+	}
+
+	p1.Points = append(p1.Points, ninjas[1])
+	winner = g.checkNinjas()
+	if winner != nil {
+		t.Fatalf("2 ninja, winner want: %v, got %v", nil, winner.ID)
+	}
+
+	p1.Points = append(p1.Points, ninjas[2])
+	winner = g.checkNinjas()
+	if winner == nil {
+		t.Fatalf("3 ninja, winner want: %v, got %v", p1.ID, nil)
+	}
+}

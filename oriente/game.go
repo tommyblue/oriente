@@ -39,9 +39,46 @@ func (g *Game) MakeAction(playerID string, action *Action) error {
 
 	g.nextPlayerTurn()
 	g.checkAndFulfillDestiny()
+	if g.checkGeisha() { // Game ends
+		g.calculateWinner()
+		return nil
+	}
+
 	g.checkEndEra()
 	g.Round++
 	return nil
+}
+
+// The game ends if someone picked the geisha
+func (g *Game) checkGeisha() bool {
+	for _, p := range g.Players {
+		// Who owns the Geisha triggers the game end
+		if p.CurrentCard.Value == Geisha {
+			g.Winner = p
+			return true
+		}
+	}
+	return false
+}
+
+// calculate the winner player
+func (g *Game) calculateWinner() {
+	var winner *Player
+	var winningPoints int
+	for _, p := range g.Players {
+		points := p.totalPoints()
+		if points > winningPoints {
+			winningPoints = points
+			winner = p
+		} else if points == winningPoints {
+			// draw points, wins the player with the highest card
+			if p.highestCard() > winner.highestCard() { // TODO: What if it's == ?
+				winner = p
+				winningPoints = points
+			}
+		}
+	}
+	g.Winner = winner
 }
 
 /* The era ends if:
@@ -56,8 +93,6 @@ At the end of the era:
 - the TokenOwner will play the next turn
 */
 func (g *Game) checkEndEra() {
-	// TODO: Check if someone picked the Geisha or has 3 Ninjas
-
 	check := false
 	// All players passed
 	if g.NextPlayerID == g.TokenOwnerID {
@@ -71,7 +106,13 @@ func (g *Game) checkEndEra() {
 			break
 		}
 	}
+
+	// New era
 	if check || allDidAction {
+		if p := g.checkNinjas(); p != nil {
+			g.Winner = p
+			return
+		}
 		// Set NextPlayer to the TokenOwner
 		g.NextPlayerID = g.TokenOwnerID
 		// Add a card to the prize
@@ -81,6 +122,22 @@ func (g *Game) checkEndEra() {
 			p.DidAction = false
 		}
 	}
+}
+
+// check if a player has 3 ninjas, return that player in case
+func (g *Game) checkNinjas() *Player {
+	for _, p := range g.Players {
+		ninjas := 0
+		for _, c := range p.Points {
+			if c.Value == Ninja {
+				ninjas++
+			}
+		}
+		if ninjas == 3 {
+			return p
+		}
+	}
+	return nil
 }
 
 /* When the player fulfill his destiny, these things happen:
